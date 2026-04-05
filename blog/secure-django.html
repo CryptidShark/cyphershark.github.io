@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pentesting web moderno | CryptidShark</title>
+  <title>Pentesting web avanzado: 5 pasos para encontrar fallos críticos | CryptidShark</title>
+  <meta name="description" content="Técnicas manuales de pentesting web que detectan vulnerabilidades reales más allá de los scanners. Pasos concretos, payloads y datos poco conocidos.">
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -17,30 +18,70 @@
     </nav>
   </header>
 
-  <main class="page">
-    <section class="hero">
-      <p class="eyebrow">Pentesting • AppSec • Riesgo real</p>
-      <h1>Pentesting web moderno: cómo encontrar fallos que realmente ponen en riesgo el negocio</h1>
-      <p class="subtitle">
-        El pentesting moderno ya no se limita a ejecutar scanners.
-        Las empresas buscan profesionales capaces de validar lógica de negocio,
-        APIs, autenticación, exposición de datos y rutas de escalación con impacto real.
-      </p>
-    </section>
+  <main class="page" style="max-width: 900px; margin: 0 auto; padding: 0 20px;">
+    <article>
+      <p class="eyebrow" style="margin-top: 40px;">Pentesting • AppSec • Técnicas avanzadas</p>
+      <h1>Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan</h1>
+      <p><strong>Publicado:</strong> Abril 2026 | <strong>Lectura:</strong> 12 min</p>
+      
+      <p>Los scanners automáticos (Burp Suite Active Scan, Nessus, Nikto) son útiles para hallazgos ruidosos pero superficiales. Las vulnerabilidades que realmente ponen en riesgo un negocio suelen estar ocultas en <strong>lógica de negocio, validaciones inconsistentes y fallos de configuración humana</strong>. Aquí te muestro 5 pasos con técnicas que he usado en auditorías reales.</p>
 
-    <section class="preview">
-      <h2>1. El problema del pentesting superficial</h2>
-      <p>Muchas auditorías se quedan en hallazgos de bajo valor... (tu contenido actual)</p>
+      <h2>1. Mapeo de funcionalidades ocultas y parámetros olvidados</h2>
+      <p>Los desarrolladores a menudo dejan endpoints de depuración, parámetros legacy o rutas no indexadas. Un scanner no los encuentra si no están enlazados desde el HTML.</p>
+      <h3>Acción clave:</h3>
+      <ul>
+        <li>Fuzzear rutas con listas como <code>raft-medium-directories.txt</code> o <code>common.txt</code> (ffuf, gobuster).</li>
+        <li>Revisar <strong>JavaScripts empaquetados</strong> en busca de rutas internas. Ejemplo: usar <code>grep -roh "https?://[^\"]*" *.js</code>.</li>
+        <li><strong>Dato poco conocido:</strong> Muchas APIs exponen un <code>/swagger</code>, <code>/openapi.json</code> o <code>/v3/api-docs</code> sin autenticación. Busca esos endpoints.</li>
+      </ul>
 
-      <h2>2. Qué buscan hoy las empresas</h2>
-      <p>Hoy las organizaciones priorizan pruebas sobre APIs REST, JWT, control de acceso, IDOR... (tu contenido)</p>
+      <h2>2. Validación de control de acceso horizontal y vertical (IDOR + Privilege Escalation)</h2>
+      <p>Los IDOR (Insecure Direct Object References) siguen siendo la joya del pentesting manual. Pero lo que pocos hacen es combinarlos con cambios de método HTTP.</p>
+      <h3>Pasos concretos:</h3>
+      <ul>
+        <li>Interceptar peticiones con IDs numéricos o UUID y probar variaciones (id=1→2, UUID incremental).</li>
+        <li><strong>Payload poco conocido:</strong> Si el ID está en JSON: <code>{"user_id": 123}</code>, probar <code>{"user_id": {"$ne": null}}</code> (inyección NoSQL en APIs).</li>
+        <li>Cambiar <code>GET /profile/123</code> a <code>POST /profile/123</code> con cuerpo vacío. A veces el método no está bien restringido.</li>
+        <li>Probar cabeceras como <code>X-Original-URL: /admin</code> o <code>X-Rewrite-URL: /admin</code> para saltar reglas de autenticación.</li>
+      </ul>
 
-      <h2>3. Mi enfoque técnico</h2>
-      <p>Combino visión de backend engineering con mentalidad ofensiva... (tu contenido)</p>
+      <h2>3. Ataque a flujos de negocio (Business Logic Abuse)</h2>
+      <p>Aquí los scanners son ciegos. Se trata de violar la lógica esperada: descuentos acumulables, puntos de fidelización, procesos de checkout.</p>
+      <h3>Técnicas clave:</h3>
+      <ul>
+        <li>En carritos de compra: agregar un producto, cambiar la cantidad a valor negativo, o repetir la misma solicitud de cupón varias veces.</li>
+        <li><strong>Ejemplo real:</strong> Una plataforma de gift cards permitía canjear la misma tarjeta dos veces si se enviaban dos peticiones en paralelo (race condition). Usa <code>Turbo Intruder</code> de PortSwigger.</li>
+        <li>Revisar parámetros de precio ocultos en HTML: a veces el precio está en un campo <code>value="199.99"</code> pero el backend no lo valida.</li>
+      </ul>
 
-      <h2>4. Conclusión</h2>
-      <p>El pentesting con mayor valor hoy es el que entiende cómo funciona el software... (tu contenido)</p>
-    </section>
+      <h2>4. Explotación de cabeceras HTTP mal configuradas y cache poisoning</h2>
+      <p>Pocos pentesters explotan a fondo cabeceras como <code>X-Forwarded-Host</code>, <code>X-Forwarded-Scheme</code> o <code>X-Original-URL</code> para manipular cachés o redirigir a sitios maliciosos.</p>
+      <h3>Pruebas manuales:</h3>
+      <ul>
+        <li>Envía <code>X-Forwarded-Host: evil.com</code> y observa si los enlaces generados por la app usan ese valor (redirección abierta en caché).</li>
+        <li>Si la app usa <code>X-Forwarded-For</code> para whitelist de IPs, prueba <code>X-Forwarded-For: 127.0.0.1</code> o <code>X-Real-IP: 127.0.0.1</code>.</li>
+        <li><strong>Dato poco conocido:</strong> Algunos proxies internos confían en <code>X-Original-URL</code> para reescribir rutas. Un atacante puede acceder a <code>/admin</code> enviando <code>X-Original-URL: /admin</code> en una petición a una ruta pública.</li>
+      </ul>
+
+      <h2>5. Bypass de rate limiting y WAF con técnicas de ofuscación</h2>
+      <p>Los rate limits basados en IP se saltan fácilmente con listas de proxies o rotación de IP. Pero también hay trucos de ofuscación para evitar WAFs en login/registro.</p>
+      <h3>Métodos prácticos:</h3>
+      <ul>
+        <li>Agregar parámetros aleatorios: <code>/login?nocache=123456789</code> para que el WAF no agrupe las peticiones.</li>
+        <li>Cambiar el caso de caracteres en JSON: <code>{"userName": "admin"}</code> vs <code>{"username": "admin"}</code>.</li>
+        <li>En GraphQL, usar alias múltiples para ejecutar muchas consultas en una sola petición:</li>
+        <pre><code>{
+  a: user(id:1){ email },
+  b: user(id:2){ email },
+  c: user(id:3){ email }
+}</code></pre>
+        <li><strong>Payload para WAFs de SQLi:</strong> usar comentarios anidados <code>/*!50000 UNION/*!/*!/*!/*! SELECT*/</code>.</li>
+      </ul>
+
+      <h2>Conclusión: el valor del pentesting manual</h2>
+      <p>Los scanners encuentran el 30% de las vulnerabilidades. El 70% restante —fallos de lógica, negocio y configuración— solo se descubren con pensamiento crítico y conocimiento profundo del framework subyacente. Empresas que entienden esto invierten en auditorías combinadas.</p>
+      <p>Si necesitas ayuda para auditar tu aplicación o capacitar a tu equipo en estas técnicas, <a href="../contact.html">contáctame</a>.</p>
+    </article>
   </main>
 
   <footer class="footer">
