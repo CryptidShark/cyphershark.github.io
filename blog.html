@@ -4,46 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog | CryptidShark</title>
+  <meta name="description" content="Tutoriales de backend, AppSec y automatización. Publicación programada desde el repo.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/blog.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="about.html">Sobre mí</a>
+        <a href="portfolio.html">Portafolio</a>
+        <a class="is-active" href="blog.html" aria-current="page">Blog</a>
+        <a href="cv.html">CV</a>
+        <a href="contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">Blog técnico</p>
-      <h1>Ingeniería backend, automatización y ciberseguridad aplicada.</h1>
-      <p class="subtitle">
-        Tutoriales y actualizaciones técnicas: arquitectura web, hardening,
-        debugging avanzado, automatización con Python y seguridad en entornos reales.
-      </p>
-    </section>
-
-    <section class="expertise">
-      <h2>Artículos</h2>
-      <div class="grid">
-        <a class="card blog-card" href="blog/secure-django.html"><strong>Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan</strong><br><br>AppSec, lógica de negocio, APIs y OWASP. Técnicas manuales para detectar vulnerabilidades reales más allá de los scanners.</a>
+      <div class="wrap">
+        <p class="eyebrow">Blog técnico</p>
+        <h1>Notas de ingeniería, no hilos de LinkedIn reciclados.</h1>
+        <p class="subtitle">
+          Backend, AppSec y automatización con pasos que puedes aplicar.
+          Los tutoriales se escriben en Markdown, se programan y salen solos.
+        </p>
       </div>
     </section>
-
-    <section class="preview">
-      <h2>Categorías</h2>
-      <p>Pentesting • AppSec • Técnicas avanzadas</p>
+    <section class="section">
+      <div class="wrap">
+        <h2>Artículos</h2>
+        <p class="section-intro">AppSec · Pentesting · OWASP</p>
+        <div class="post-list">
+          <a class="post-card post-card--featured" href="blog/secure-django.html"><div class="post-card-meta"><time datetime="2026-04-01">1 de abril 2026</time><span>3 min</span></div><h3>Pentesting web avanzado: 5 pasos para fallos que el scanner no ve</h3><p class="excerpt">Cómo priorizar acceso, lógica de negocio y configuración cuando el scan automático ya dijo que todo está limpio.</p><ul class="chips"><li>AppSec</li><li>Pentesting</li><li>OWASP</li></ul></a>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="contact.html">Contacto</a></p>
+    </div>
   </footer>
 </body>
 </html>

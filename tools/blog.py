@@ -22,7 +22,10 @@ POSTS_DIR = ROOT / "content" / "posts"
 STATE_PATH = ROOT / "content" / "state.json"
 BLOG_DIR = ROOT / "blog"
 BLOG_INDEX = ROOT / "blog.html"
+INDEX_PATH = ROOT / "index.html"
+SITEMAP_PATH = ROOT / "sitemap.xml"
 SITE_TZ = ZoneInfo("America/Bogota")
+DEFAULT_SITE_URL = "https://cyphershark.github.io"
 MONTHS_ES = (
     "enero",
     "febrero",
@@ -37,44 +40,75 @@ MONTHS_ES = (
     "noviembre",
     "diciembre",
 )
+FONTS = (
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500"
+    "&family=IBM+Plex+Sans:wght@400;500;600;700"
+    "&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap"
+)
 
 ARTICLE_TEMPLATE = """<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title} | CryptidShark</title>
-  <meta name="description" content="{description}">
-  <meta property="og:title" content="{title}">
-  <meta property="og:description" content="{description}">
+  <title>{{title}} | CryptidShark</title>
+  <meta name="description" content="{{description}}">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="{{url}}">
+  <meta property="og:title" content="{{title}}">
+  <meta property="og:description" content="{{description}}">
   <meta property="og:type" content="article">
-  <meta property="og:url" content="{url}">
+  <meta property="og:url" content="{{url}}">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{fonts}}" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="../index.html">Home</a>
-      <a href="../about.html">About</a>
-      <a href="../portfolio.html">Portfolio</a>
-      <a href="../blog.html">Blog</a>
-      <a href="../cv.html">CV</a>
-      <a href="../contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="../index.html">Inicio</a>
+        <a href="../about.html">Sobre mí</a>
+        <a href="../portfolio.html">Portafolio</a>
+        <a class="is-active" href="../blog.html" aria-current="page">Blog</a>
+        <a href="../cv.html">CV</a>
+        <a href="../contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page article">
+  <main id="contenido" class="article-shell">
+    <a class="back-link" href="../blog.html">← Todos los artículos</a>
     <article>
-      <p class="eyebrow">{tags}</p>
-      <h1>{title}</h1>
-      <p class="article-meta"><strong>Publicado:</strong> {date_label} | <strong>Lectura:</strong> {reading_time} min</p>
-      {body}
+      <p class="eyebrow">{{tags}}</p>
+      <h1>{{title}}</h1>
+      <p class="article-meta"><time datetime="{{date_iso}}">{{date_label}}</time> · {{reading_time}} min de lectura</p>
+      {{toc}}
+      <div class="article-body">
+        {{body}}
+      </div>
     </article>
+    <aside class="page-cta">
+      <strong>¿Te sirve esto en un sistema real?</strong>
+      <p class="section-intro">Auditorías y desarrollo con alcance escrito. Sin teatro de scanner.</p>
+      <a class="btn primary" href="../contact.html">Hablar</a>
+    </aside>
   </main>
 
   <footer class="footer">
-    <p>© {year} CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© {{year}} CryptidShark — Backend & Security Engineering</p>
+      <p><a href="../blog.html">Blog</a></p>
+    </div>
   </footer>
 </body>
 </html>
@@ -86,50 +120,74 @@ BLOG_INDEX_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blog | CryptidShark</title>
+  <meta name="description" content="Tutoriales de backend, AppSec y automatización. Publicación programada desde el repo.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="{{site_url}}/blog.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="{{fonts}}" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="about.html">Sobre mí</a>
+        <a href="portfolio.html">Portafolio</a>
+        <a class="is-active" href="blog.html" aria-current="page">Blog</a>
+        <a href="cv.html">CV</a>
+        <a href="contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">Blog técnico</p>
-      <h1>Ingeniería backend, automatización y ciberseguridad aplicada.</h1>
-      <p class="subtitle">
-        Tutoriales y actualizaciones técnicas: arquitectura web, hardening,
-        debugging avanzado, automatización con Python y seguridad en entornos reales.
-      </p>
-    </section>
-
-    <section class="expertise">
-      <h2>Artículos</h2>
-      <div class="grid">
-        {cards}
+      <div class="wrap">
+        <p class="eyebrow">Blog técnico</p>
+        <h1>Notas de ingeniería, no hilos de LinkedIn reciclados.</h1>
+        <p class="subtitle">
+          Backend, AppSec y automatización con pasos que puedes aplicar.
+          Los tutoriales se escriben en Markdown, se programan y salen solos.
+        </p>
       </div>
     </section>
-
-    <section class="preview">
-      <h2>Categorías</h2>
-      <p>{categories}</p>
+    <section class="section">
+      <div class="wrap">
+        <h2>Artículos</h2>
+        <p class="section-intro">{{categories}}</p>
+        <div class="post-list">
+          {{cards}}
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© {year} CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© {{year}} CryptidShark — Backend & Security Engineering</p>
+      <p><a href="contact.html">Contacto</a></p>
+    </div>
   </footer>
 </body>
 </html>
 """
+
+
+def fill(template: str, **kwargs: str) -> str:
+    out = template
+    for key, value in kwargs.items():
+        out = out.replace("{{" + key + "}}", str(value))
+    return out
 
 
 def slugify(value: str) -> str:
@@ -169,7 +227,7 @@ def split_frontmatter(text: str) -> tuple[dict, str]:
 
 
 def reading_minutes(body: str) -> int:
-    words = len(re.findall(r"\w+", body))
+    words = len(re.findall(r"\w+", body, flags=re.UNICODE))
     return max(1, round(words / 200))
 
 
@@ -187,7 +245,7 @@ def load_posts() -> list[dict]:
             tags = [item.strip() for item in tags.split(",") if item.strip()]
         excerpt = str(meta.get("excerpt") or "").strip()
         if not excerpt:
-            excerpt = re.sub(r"\s+", " ", re.sub(r"[#*`]", "", body)).strip()[:180]
+            excerpt = re.sub(r"\s+", " ", re.sub(r"[#*`>_]", "", body)).strip()[:180]
         posts.append(
             {
                 "path": path,
@@ -209,9 +267,7 @@ def load_posts() -> list[dict]:
 def is_live(post: dict, now: datetime) -> bool:
     if post["status"] == "draft":
         return False
-    if post["status"] in {"scheduled", "published"}:
-        return post["publish_at"] <= now
-    return False
+    return post["status"] in {"scheduled", "published"} and post["publish_at"] <= now
 
 
 def load_state() -> dict:
@@ -225,50 +281,107 @@ def save_state(state: dict) -> None:
     STATE_PATH.write_text(json.dumps(state, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
-def render_body(markdown_text: str) -> str:
-    return markdown.markdown(
-        markdown_text,
-        extensions=["fenced_code", "tables", "nl2br", "sane_lists"],
+def render_markdown(markdown_text: str) -> tuple[str, str]:
+    converter = markdown.Markdown(extensions=["fenced_code", "tables", "sane_lists", "toc"])
+    body = converter.convert(markdown_text)
+    toc = converter.toc if getattr(converter, "toc", "") and "<li>" in converter.toc else ""
+    if toc:
+        toc = f'<nav class="toc" aria-label="Índice"><p>En esta página</p>{toc}</nav>'
+    return body, toc
+
+
+def post_card(post: dict, featured: bool = False, href_prefix: str = "blog/") -> str:
+    klass = "post-card post-card--featured" if featured else "post-card"
+    chips = "".join(f"<li>{html.escape(tag)}</li>" for tag in post["tags"])
+    chips_html = f'<ul class="chips">{chips}</ul>' if chips else ""
+    return (
+        f'<a class="{klass}" href="{href_prefix}{html.escape(post["slug"])}.html">'
+        f'<div class="post-card-meta">'
+        f'<time datetime="{post["publish_at"].date().isoformat()}">{html.escape(format_date_es(post["publish_at"]))}</time>'
+        f'<span>{reading_minutes(post["body"])} min</span>'
+        f"</div>"
+        f"<h3>{html.escape(post['title'])}</h3>"
+        f'<p class="excerpt">{html.escape(post["excerpt"])}</p>'
+        f"{chips_html}"
+        "</a>"
     )
 
 
 def write_article(post: dict, site_url: str) -> None:
     BLOG_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{site_url.rstrip('/')}/blog/{post['slug']}.html"
-    html_doc = ARTICLE_TEMPLATE.format(
+    body, toc = render_markdown(post["body"])
+    html_doc = fill(
+        ARTICLE_TEMPLATE,
         title=html.escape(post["title"]),
         description=html.escape(post["excerpt"]),
         url=html.escape(url),
-        tags=html.escape(" • ".join(post["tags"]) or "Tutorial"),
+        fonts=FONTS,
+        tags=html.escape(" · ".join(post["tags"]) or "Tutorial"),
+        date_iso=post["publish_at"].date().isoformat(),
         date_label=html.escape(format_date_es(post["publish_at"])),
-        reading_time=reading_minutes(post["body"]),
-        body=render_body(post["body"]),
-        year=datetime.now(SITE_TZ).year,
+        reading_time=str(reading_minutes(post["body"])),
+        toc=toc,
+        body=body,
+        year=str(datetime.now(SITE_TZ).year),
     )
     (BLOG_DIR / f"{post['slug']}.html").write_text(html_doc, encoding="utf-8")
 
 
-def write_index(live_posts: list[dict]) -> None:
+def write_index(live_posts: list[dict], site_url: str) -> None:
     if live_posts:
-        cards = "\n        ".join(
-            (
-                f'<a class="card blog-card" href="blog/{html.escape(post["slug"])}.html">'
-                f"<strong>{html.escape(post['title'])}</strong><br><br>"
-                f"{html.escape(post['excerpt'])}"
-                "</a>"
-            )
-            for post in live_posts
+        cards = "\n          ".join(
+            post_card(post, featured=(index == 0)) for index, post in enumerate(live_posts)
         )
-        categories = " • ".join(dict.fromkeys(tag for post in live_posts for tag in post["tags"])) or "Tutoriales"
+        categories = " · ".join(dict.fromkeys(tag for post in live_posts for tag in post["tags"])) or "Tutoriales"
     else:
-        cards = '<p class="subtitle">Aún no hay tutoriales publicados. El próximo artículo aparecerá aquí automáticamente.</p>'
-        categories = "Backend • Django • Python • AppSec • Debugging • OWASP • Automation"
+        cards = '<p class="section-intro">Aún no hay tutoriales en vivo. El próximo aparece aquí solo, a la hora programada.</p>'
+        categories = "Backend · Django · Python · AppSec"
     BLOG_INDEX.write_text(
-        BLOG_INDEX_TEMPLATE.format(
+        fill(
+            BLOG_INDEX_TEMPLATE,
             cards=cards,
             categories=html.escape(categories),
-            year=datetime.now(SITE_TZ).year,
+            year=str(datetime.now(SITE_TZ).year),
+            fonts=FONTS,
+            site_url=html.escape(site_url.rstrip("/")),
         ),
+        encoding="utf-8",
+    )
+
+
+def update_home(live_posts: list[dict]) -> None:
+    if not INDEX_PATH.exists():
+        return
+    source = INDEX_PATH.read_text(encoding="utf-8")
+    start = "<!-- BLOG_LATEST:START -->"
+    end = "<!-- BLOG_LATEST:END -->"
+    if start not in source or end not in source:
+        return
+    if live_posts:
+        inner = '<div class="post-list">\n          ' + "\n          ".join(
+            post_card(post, featured=(index == 0)) for index, post in enumerate(live_posts[:3])
+        ) + "\n        </div>"
+    else:
+        inner = '<p class="section-intro">El primer tutorial aparecerá aquí al publicarse.</p>'
+    before, rest = source.split(start, 1)
+    _, after = rest.split(end, 1)
+    INDEX_PATH.write_text(f"{before}{start}\n        {inner}\n        {end}{after}", encoding="utf-8")
+
+
+def write_sitemap(live_posts: list[dict], site_url: str) -> None:
+    base = site_url.rstrip("/")
+    pages = ["/", "/about.html", "/portfolio.html", "/blog.html", "/cv.html", "/contact.html"]
+    urls = pages + [f"/blog/{post['slug']}.html" for post in live_posts]
+    items = "\n".join(
+        f"  <url><loc>{html.escape(base + path if path != '/' else base + '/')}</loc></url>"
+        for path in urls
+    )
+    SITEMAP_PATH.write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"{items}\n"
+        "</urlset>\n",
         encoding="utf-8",
     )
 
@@ -296,11 +409,12 @@ def cmd_new(args: argparse.Namespace) -> None:
     front = yaml.safe_dump(doc, allow_unicode=True, sort_keys=False).strip()
     path.write_text(
         f"---\n{front}\n---\n\n"
-        f"Escribe aquí tu tutorial.\n\n"
-        f"## Qué vas a construir\n\n"
-        f"## Pasos\n\n"
-        f"1. \n\n"
-        f"## Conclusión\n",
+        "Párrafo de contexto: para quién es esto y qué problema cierra.\n\n"
+        "## Qué vas a dejar hecho\n\n"
+        "## Pasos\n\n"
+        "1. \n\n"
+        "## Cómo comprobarlo\n\n"
+        "## Cierre\n",
         encoding="utf-8",
     )
     print(f"Creado {path.relative_to(ROOT)}")
@@ -317,7 +431,9 @@ def cmd_build(args: argparse.Namespace) -> list[dict]:
 
     for post in live:
         write_article(post, site_url)
-    write_index(live)
+    write_index(live, site_url)
+    update_home(live)
+    write_sitemap(live, site_url)
 
     print(f"Publicados ahora: {len(live)}")
     for post in live:
@@ -343,9 +459,7 @@ def cmd_publish(args: argparse.Namespace) -> None:
 
     try:
         for post in live:
-            if not post["linkedin"]:
-                continue
-            if post["slug"] in already_shared:
+            if not post["linkedin"] or post["slug"] in already_shared:
                 continue
             if post["slug"] not in previously_live or args.share_existing:
                 url = f"{site_url}/blog/{post['slug']}.html"
@@ -368,11 +482,7 @@ def cmd_publish(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Blog de tutoriales para GitHub Pages")
-    parser.add_argument(
-        "--site-url",
-        default="https://cyphershark.github.io",
-        help="URL pública del sitio",
-    )
+    parser.add_argument("--site-url", default=DEFAULT_SITE_URL, help="URL pública del sitio")
     sub = parser.add_subparsers(dest="command", required=True)
 
     new_p = sub.add_parser("new", help="Crear un tutorial en Markdown")

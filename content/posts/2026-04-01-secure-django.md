@@ -1,82 +1,86 @@
 ---
-title: "Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan"
+title: "Pentesting web avanzado: 5 pasos para fallos que el scanner no ve"
 slug: secure-django
 publish_at: "2026-04-01T09:00:00-05:00"
 status: published
 tags:
-  - Pentesting
   - AppSec
-  - Técnicas avanzadas
-excerpt: "AppSec, lógica de negocio, APIs y OWASP. Técnicas manuales para detectar vulnerabilidades reales más allá de los scanners."
+  - Pentesting
+  - OWASP
+excerpt: "Cómo priorizar acceso, lógica de negocio y configuración cuando el scan automático ya dijo que todo está limpio."
 linkedin: false
 linkedin_text: ""
 ---
 
-Los scanners automáticos (Burp Suite Active Scan, Nessus, Nikto) son útiles para hallazgos ruidosos pero superficiales. Las vulnerabilidades que realmente ponen en riesgo un negocio suelen estar ocultas en **lógica de negocio, validaciones inconsistentes y fallos de configuración humana**. Aquí te muestro 5 pasos con técnicas que he usado en auditorías reales.
+Este texto es una guía de **auditoría autorizada**. Sirve para equipos que ya tienen alcance, entorno de pruebas y un dueño del riesgo. No es un recetario para atacar sistemas ajenos.
 
-## 1. Mapeo de funcionalidades ocultas y parámetros olvidados
+Los scanners (Burp Active Scan, Nessus, Nikto y similares) son buenos para ruido conocido: cabeceras flojas, software viejo, XSS obvio. Las pérdidas de dinero suelen estar en otro sitio: **objetos mal protegidos, reglas de negocio rotas y proxies que confían de más**.
 
-Los desarrolladores a menudo dejan endpoints de depuración, parámetros legacy o rutas no indexadas. Un scanner no los encuentra si no están enlazados desde el HTML.
+Abajo va el orden en el que yo reviso una app web cuando el informe automático llegó “verde”.
 
-### Acción clave
+## 1. Inventario de lo que el HTML no enseña
 
-- Fuzzear rutas con listas como `raft-medium-directories.txt` o `common.txt` (ffuf, gobuster).
-- Revisar **JavaScripts empaquetados** en busca de rutas internas. Ejemplo: usar `grep -roh "https?://[^\"]*" *.js`.
-- **Dato poco conocido:** muchas APIs exponen un `/swagger`, `/openapi.json` o `/v3/api-docs` sin autenticación. Busca esos endpoints.
+Un crawler solo sigue enlaces. Lo peligroso a menudo vive en JS empaquetado, rutas legacy y docs de API olvidadas.
 
-## 2. Validación de control de acceso horizontal y vertical (IDOR + Privilege Escalation)
+Qué revisar, con permiso y en el entorno acordado:
 
-Los IDOR (Insecure Direct Object References) siguen siendo la joya del pentesting manual. Pero lo que pocos hacen es combinarlos con cambios de método HTTP.
+- Directorios y rutas que el front ya no muestra.
+- Bundles JS: URLs internas, feature flags, clientes de API.
+- Contratos abiertos: `/openapi.json`, `/swagger`, `/v3/api-docs`.
 
-### Pasos concretos
+**Por qué el scanner falla:** no adivina un endpoint que nadie linkea.
 
-- Interceptar peticiones con IDs numéricos o UUID y probar variaciones (id=1→2, UUID incremental).
-- **Payload poco conocido:** si el ID está en JSON: `{"user_id": 123}`, probar `{"user_id": {"$ne": null}}` (inyección NoSQL en APIs).
-- Cambiar `GET /profile/123` a `POST /profile/123` con cuerpo vacío. A veces el método no está bien restringido.
-- Probar cabeceras como `X-Original-URL: /admin` o `X-Rewrite-URL: /admin` para saltar reglas de autenticación.
+**Qué arreglar:** inventario de rutas, auth en la documentación interna, y apagar lo que ya no se usa.
 
-## 3. Ataque a flujos de negocio (Business Logic Abuse)
+## 2. Control de acceso, no solo “el login funciona”
 
-Aquí los scanners son ciegos. Se trata de violar la lógica esperada: descuentos acumulables, puntos de fidelización, procesos de checkout.
+IDOR y subida de privilegios siguen pagando incidentes. El patrón es simple: el usuario autenticado puede leer o mutar el objeto de otro.
 
-### Técnicas clave
+Señales:
 
-- En carritos de compra: agregar un producto, cambiar la cantidad a valor negativo, o repetir la misma solicitud de cupón varias veces.
-- **Ejemplo real:** una plataforma de gift cards permitía canjear la misma tarjeta dos veces si se enviaban dos peticiones en paralelo (race condition). Usa Turbo Intruder de PortSwigger.
-- Revisar parámetros de precio ocultos en HTML: a veces el precio está en un campo `value="199.99"` pero el backend no lo valida.
+- IDs en path, query o JSON sin comprobar pertenencia en servidor.
+- El mismo recurso acepta un verbo HTTP que nadie pensó (un `GET` endurecido y un `POST` flojo).
+- Confiar en cabeceras de rewrite (`X-Original-URL` y primas) para decidir si algo es admin.
 
-## 4. Explotación de cabeceras HTTP mal configuradas y cache poisoning
+**Remediación:** autorización por objeto en el backend, tests de “usuario A no toca recurso de B”, y negar por defecto cualquier cabecera de proxy que no hayáis puesto vosotros.
 
-Pocos pentesters explotan a fondo cabeceras como `X-Forwarded-Host`, `X-Forwarded-Scheme` o `X-Original-URL` para manipular cachés o redirigir a sitios maliciosos.
+## 3. Lógica de negocio
 
-### Pruebas manuales
+Aquí el scanner es ciego. Cupones, saldos, gift cards, checkout y puntos de fidelización no tienen firma en OWASP ZAP.
 
-- Envía `X-Forwarded-Host: evil.com` y observa si los enlaces generados por la app usan ese valor (redirección abierta en caché).
-- Si la app usa `X-Forwarded-For` para whitelist de IPs, prueba `X-Forwarded-For: 127.0.0.1` o `X-Real-IP: 127.0.0.1`.
-- **Dato poco conocido:** algunos proxies internos confían en `X-Original-URL` para reescribir rutas. Un atacante puede acceder a `/admin` enviando `X-Original-URL: /admin` en una petición a una ruta pública.
+Preguntas útiles:
 
-## 5. Bypass de rate limiting y WAF con técnicas de ofuscación
+- ¿Puedo aplicar dos veces el mismo descuento si envío las peticiones juntas?
+- ¿El precio viaja en el cliente y el servidor lo cree?
+- ¿Un valor negativo o un estado “cancelado” rompe el flujo a mi favor?
 
-Los rate limits basados en IP se saltan fácilmente con listas de proxies o rotación de IP. Pero también hay trucos de ofuscación para evitar WAFs en login/registro.
+**Remediación:** invariantes en servidor, idempotencia en canjes, y pruebas de carrera en los flujos que mueven dinero.
 
-### Métodos prácticos
+## 4. Proxies, caché y cabeceras de confianza
 
-- Agregar parámetros aleatorios: `/login?nocache=123456789` para que el WAF no agrupe las peticiones.
-- Cambiar el caso de caracteres en JSON: `{"userName": "admin"}` vs `{"username": "admin"}`.
-- En GraphQL, usar alias múltiples para ejecutar muchas consultas en una sola petición:
+`X-Forwarded-Host`, `X-Forwarded-For`, `X-Original-URL` y primas son útiles detrás de un edge que controláis. Si la app las cree en crudo, alguien las va a rellenar.
 
-```
-{
-  a: user(id:1){ email },
-  b: user(id:2){ email },
-  c: user(id:3){ email }
-}
-```
+Efectos típicos: enlaces mal generados, cache poisoning, bypass de “solo red interna”.
 
-- **Payload para WAFs de SQLi:** usar comentarios anidados `/*!50000 UNION/*!/*!/*!/*! SELECT*/`.
+**Remediación:** el reverse proxy pisa esas cabeceras; la app no las usa para auth ni para construir URLs públicas si no están firmadas por infra.
 
-## Conclusión: el valor del pentesting manual
+## 5. Rate limit y WAF como capa, no como diseño
 
-Los scanners encuentran el 30% de las vulnerabilidades. El 70% restante —fallos de lógica, negocio y configuración— solo se descubren con pensamiento crítico y conocimiento profundo del framework subyacente. Empresas que entienden esto invierten en auditorías combinadas.
+Limitar por IP es un parche. Ofuscación de JSON, aliases de GraphQL y cache-busters existen porque el control está en el borde, no en el dominio.
 
-Si necesitas ayuda para auditar tu aplicación o capacitar a tu equipo en estas técnicas, [contáctame](../contact.html).
+Un WAF bien tunado reduce basura. No sustituye:
+
+- lockout o backoff en login,
+- cuota por cuenta, no solo por IP,
+- validación estricta del schema.
+
+## Cómo usarlo en un equipo
+
+1. Alcance por escrito.
+2. Recorrer flujos de negocio con dos usuarios de verdad.
+3. Anotar impacto (datos, dinero, reputación), no el nombre de la CVE.
+4. Parchear en código y config; volver a probar el mismo caso.
+
+Los porcentajes de “el scanner pilla el 30%” son marketing. Lo medible es: **cuántos de vuestros flujos de dinero y de identidad tienen test de autorización**.
+
+Si quieres una revisión con alcance y entregable accionable, [escribe](../contact.html).

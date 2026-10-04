@@ -1,70 +1,54 @@
-# CryptidShark — sitio y blog
+# CryptidShark
 
-Sitio estático en GitHub Pages, con tutoriales en Markdown, publicación programada y envío automático a LinkedIn.
+Sitio estático (GitHub Pages) con tutoriales en Markdown, publicación a una hora fija y aviso opcional en LinkedIn.
 
-## Cómo publicar un tutorial
+## Publicar un tutorial nuevo
 
-Desde la raíz del repo:
+1. En la raíz del repo, una sola vez:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-blog.txt
-
-python tools/blog.py new "Cómo endurecer una API Django" --at "2026-10-20 09:00" --tags "Django,AppSec"
 ```
 
-Eso crea un archivo en `content/posts/`. Edítalo, súbelo a GitHub y listo.
+2. Crear el archivo (la hora es `America/Bogota`, UTC-5):
 
-- Si `--at` es **en el futuro**, el post queda `scheduled`. GitHub Actions lo publica cuando llegue la hora (zona `America/Bogota`, UTC-5).
-- Si `--at` es ahora o lo omites, se genera el HTML en cuanto corras `build` o se dispare el workflow.
-- `status: draft` nunca se publica.
-- `linkedin: true` (por defecto en posts nuevos) comparte el artículo en tu perfil cuando pasa a estar en vivo.
+```bash
+python tools/blog.py new "Título del tutorial" \
+  --at "2026-10-20 09:00" \
+  --tags "Django,AppSec" \
+  --excerpt "Una frase que explique el problema y el resultado."
+```
 
-Generar el sitio en local:
+Si omites `--at`, se considera publicable ahora.
+
+3. Edita `content/posts/AAAA-MM-DD-....md`. Frontmatter útil:
+
+```yaml
+status: scheduled    # draft | scheduled | published
+linkedin: true       # false si no quieres el post en LinkedIn
+linkedin_text: ""    # texto custom; si va vacío se arma solo
+```
+
+4. Vista local:
 
 ```bash
 python tools/blog.py build
+python3 -m http.server 8765
 ```
 
-El listado vive en `blog.html` y cada artículo en `blog/<slug>.html`.
+Abre `http://127.0.0.1:8765/blog.html`. Un post futuro **no** aparece hasta su hora.
 
-## LinkedIn automático
+5. Sube el Markdown (y el resto del sitio) a GitHub. El workflow corre al hacer push de `content/posts/` y **cada hora**. Genera `blog/`, actualiza el listado del home y, si hay secrets, publica en LinkedIn.
 
-LinkedIn no deja programar el post “en su app” desde este repo: el workflow publica el HTML **y luego** llama a la API. Necesitas una app en [LinkedIn Developers](https://www.linkedin.com/developers/).
-
-1. Crea una app y agrégale los productos **Sign In with LinkedIn using OpenID Connect** y **Share on LinkedIn**.
-2. En Auth, añade esta Redirect URL: `https://www.linkedin.com/developers/tools/oauth/redirect`
-3. Genera el token:
+6. LinkedIn, una vez: app con *Sign In with LinkedIn* + *Share on LinkedIn*, redirect `https://www.linkedin.com/developers/tools/oauth/redirect`, luego:
 
 ```bash
-export LINKEDIN_CLIENT_ID="..."
-export LINKEDIN_CLIENT_SECRET="..."
 python tools/linkedin_auth.py url
-# autoriza, copia el code de la URL
 python tools/linkedin_auth.py token PEGA_EL_CODE
 ```
 
-4. En el repo de GitHub: **Settings → Secrets and variables → Actions**, crea:
-   - `LINKEDIN_ACCESS_TOKEN`
-   - `LINKEDIN_AUTHOR_URN` (sale del script, forma `urn:li:person:...`)
-   - opcional: `SITE_URL` (`https://cyphershark.github.io`)
+Secrets del repo: `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_AUTHOR_URN`, opcional `SITE_URL`. En Actions, permiso de escritura al GITHUB_TOKEN. El token caduca ~60 días.
 
-El workflow `.github/workflows/publish-blog.yml` corre cada hora y también al subir archivos en `content/posts/`.
-
-Los tokens personales de LinkedIn caducan (suele ser ~60 días). Cuando dejen de publicarse, vuelve a ejecutar `linkedin_auth.py`.
-
-El artículo que ya estaba en el sitio tiene `linkedin: false` para no republicarlo en LinkedIn. En tutoriales nuevos déjalo en `true`.
-
-## Frontmatter
-
-```yaml
-title: Título del tutorial
-slug: url-corta
-publish_at: "2026-10-20T09:00:00-05:00"
-status: scheduled   # draft | scheduled | published
-tags: [Django, AppSec]
-excerpt: Resumen corto para la tarjeta y LinkedIn
-linkedin: true
-linkedin_text: "Texto opcional del post en LinkedIn"
-```
+El artículo `secure-django` tiene `linkedin: false` a propósito.

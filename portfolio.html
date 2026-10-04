@@ -1,74 +1,98 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portfolio | CryptidShark</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portafolio | CryptidShark</title>
+  <meta name="description" content="Case studies privados: modernización Django, auditorías web y automatización operativa.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/portfolio.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="about.html">Sobre mí</a>
+        <a class="is-active" href="portfolio.html" aria-current="page">Portafolio</a>
+        <a href="blog.html">Blog</a>
+        <a href="cv.html">CV</a>
+        <a href="contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">Portfolio</p>
-      <h1>Experiencia aplicada en sistemas reales, seguridad y automatización.</h1>
-      <p class="subtitle">
-        Mi trabajo se ha enfocado principalmente en proyectos privados,
-        optimización de plataformas web, hardening, auditorías técnicas
-        y automatización de procesos críticos.
-      </p>
+      <div class="wrap">
+        <p class="eyebrow">Portafolio</p>
+        <h1>Trabajo aplicado, no un museo de clones.</h1>
+        <p class="subtitle">
+          La mayor parte ha sido privada: plataformas que ya tenían usuarios,
+          deuda y fecha de entrega. Aquí va el tipo de problema, no el nombre del cliente.
+        </p>
+      </div>
     </section>
 
-    <section class="expertise">
-      <h2>Case Studies Privados</h2>
-      <div class="grid">
-        <div class="card">
-          <strong>Modernización backend Django</strong><br><br>
-          Refactorización de módulos críticos, optimización de consultas
-          y mejora de tiempos de respuesta en entornos productivos.
-        </div>
-
-        <div class="card">
-          <strong>Auditoría de seguridad web</strong><br><br>
-          Revisión de superficie de ataque, hardening de configuraciones
-          y fortalecimiento contra vulnerabilidades OWASP.
-        </div>
-
-        <div class="card">
-          <strong>Automatización operativa</strong><br><br>
-          Scripts Python para reportes, integraciones, limpieza de datos
-          y reducción de tareas manuales repetitivas.
+    <section class="section">
+      <div class="wrap">
+        <h2>Case studies privados</h2>
+        <div class="grid">
+          <article class="card">
+            <strong>Modernización backend Django</strong>
+            <p>Refactor de módulos calientes, consultas que no escalaban y un modelo más honesto con el dominio. Menos timeouts, deploys más previsibles.</p>
+          </article>
+          <article class="card">
+            <strong>Auditoría de aplicación web</strong>
+            <p>Superficie de ataque, control de acceso, configs y hallazgos OWASP con ruta de remediación. El entregable es riesgo priorizado, no un PDF de 200 páginas.</p>
+          </article>
+          <article class="card">
+            <strong>Automatización operativa</strong>
+            <p>Python para reportes, limpieza de datos e integraciones. Horas de trabajo manual convertidas en un job que alguien más puede correr.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="expertise">
-      <h2>Labs & Tooling</h2>
-      <div class="grid">
-        <div class="card">Frameworks base para despliegues seguros</div>
-        <div class="card">Scripts de auditoría de dependencias</div>
-        <div class="card">Herramientas de análisis y debugging</div>
+    <section class="section">
+      <div class="wrap">
+        <h2>Labs y tooling</h2>
+        <p class="section-intro">Piezas internas que reaparecen de un proyecto a otro.</p>
+        <div class="grid">
+          <article class="card">
+            <strong>Bases de despliegue</strong>
+            <p>Nginx, Docker y defaults menos ingenuos para Django en servidores reales.</p>
+          </article>
+          <article class="card">
+            <strong>Dependencias</strong>
+            <p>Revisión de paquetes y superficie de supply chain antes de que llegue a prod.</p>
+          </article>
+          <article class="card">
+            <strong>Debugging</strong>
+            <p>Scripts y checklists para aislar regresiones de rendimiento y de auth.</p>
+          </article>
+        </div>
       </div>
-    </section>
-
-    <section class="preview">
-      <h2>Open Source en crecimiento</h2>
-      <p>
-        Próximamente este espacio mostrará herramientas públicas,
-        writeups, automatizaciones reutilizables y proyectos orientados
-        a backend engineering y AppSec.
-      </p>
     </section>
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="contact.html">Encargar un trabajo</a></p>
+    </div>
+  </footer>
 </body>
 </html>

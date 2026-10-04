@@ -3,60 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About | CryptidShark</title>
+  <title>Sobre mí | CryptidShark</title>
+  <meta name="description" content="Anthony Renzo A. (CryptidShark): backend engineer y AppSec. Django, Python, auditoría y sistemas en producción.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/about.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a class="is-active" href="about.html" aria-current="page">Sobre mí</a>
+        <a href="portfolio.html">Portafolio</a>
+        <a href="blog.html">Blog</a>
+        <a href="cv.html">CV</a>
+        <a href="contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">Quién soy</p>
-      <h1>Ingeniería web, automatización y ciberseguridad aplicada.</h1>
-      <p class="subtitle">
-        Soy <strong>Anthony Renzo A.</strong> (alias CryptidShark), un Backend Engineer y especialista en seguridad
-        orientado a construir, auditar y fortalecer sistemas web modernos.
-        Mi enfoque combina desarrollo backend, debugging profundo,
-        automatización y prevención de riesgos de seguridad.
-      </p>
-    </section>
-
-    <section class="expertise">
-      <h2>Cómo trabajo</h2>
-      <div class="grid">
-        <div class="card">Diseño arquitecturas backend escalables</div>
-        <div class="card">Automatizo tareas críticas con Python</div>
-        <div class="card">Audito riesgos y superficies de ataque</div>
-        <div class="card">Optimizo rendimiento y debugging complejo</div>
-        <div class="card">Capacito equipos en seguridad preventiva</div>
-        <div class="card">Acompaño proyectos desde idea a producción</div>
+      <div class="wrap">
+        <p class="eyebrow">Quién soy</p>
+        <h1>Ingeniería backend con criterio de seguridad.</h1>
+        <p class="subtitle">
+          Soy <strong>Anthony Renzo A.</strong>, CryptidShark. Construyo y reviso sistemas web
+          cuando el detalle importa: autenticación, datos, rendimiento y lo que un scanner no ve.
+        </p>
       </div>
     </section>
 
-    <section class="preview">
-      <h2>Mi trayectoria</h2>
-      <p>
-        <!-- 🔴 REEMPLAZA ESTO con tu experiencia real (ej: "5 años desarrollando backend para empresas de logística, automatización de procesos, auditorías de seguridad en startups fintech...") -->
-        He trabajado en proyectos privados para diversas empresas, desarrollando soluciones backend, realizando auditorías de seguridad y automatizando procesos críticos. Mi experiencia abarca desde la construcción de APIs hasta el hardening de aplicaciones en producción.
-      </p>
-      <p>
-        Si quieres conocer más detalles, visita mi <a href="https://linkedin.com/in/anthony-renzo-a-06a599196" target="_blank">LinkedIn</a>.
-      </p>
+    <section class="section">
+      <div class="wrap">
+        <h2>Cómo trabajo</h2>
+        <p class="section-intro">Prefiero entregas que se puedan operar mañana, no demos que se rompen al segundo deploy.</p>
+        <div class="grid">
+          <article class="card">
+            <strong>Arquitectura usable</strong>
+            <p>Módulos claros, límites de API y un modelo de datos que no pelea con el negocio.</p>
+          </article>
+          <article class="card">
+            <strong>Seguridad en el ciclo</strong>
+            <p>Reviso auth, objetos directos, jobs y configs antes de hablar de “herramientas”.</p>
+          </article>
+          <article class="card">
+            <strong>Automatizar lo aburrido</strong>
+            <p>Python para reportes, integraciones y toil que hoy vive en hojas de cálculo.</p>
+          </article>
+          <article class="card">
+            <strong>Explicar el riesgo</strong>
+            <p>Hallazgos con impacto, reproducción y remediación. Sin teatro de severidad.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap split">
+        <div>
+          <h2>Trayectoria</h2>
+          <p class="section-intro">
+            He trabajado en proyectos privados: backends, auditorías puntuales y automatización
+            de procesos que ya estaban en producción. El detalle confidencial se queda fuera;
+            el criterio, no.
+          </p>
+          <p>
+            El hilo común es el mismo: código que se entiende, sistemas que no se abren solos
+            y documentación que un equipo puede seguir sin mí.
+          </p>
+        </div>
+        <aside class="card">
+          <strong>También aquí</strong>
+          <p>Perfil y recomendaciones en LinkedIn, y tutoriales técnicos en el blog.</p>
+          <p style="margin-top:16px">
+            <a class="btn secondary" href="https://www.linkedin.com/in/anthony-renzo-a-06a599196" rel="me noopener noreferrer" target="_blank">LinkedIn</a>
+          </p>
+        </aside>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="contact.html">Contacto</a></p>
+    </div>
   </footer>
 </body>
 </html>

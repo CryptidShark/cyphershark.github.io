@@ -3,57 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact | CryptidShark</title>
+  <title>Contacto | CryptidShark</title>
+  <meta name="description" content="Contacto para desarrollo backend, auditorías AppSec y capacitación técnica.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/contact.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="about.html">Sobre mí</a>
+        <a href="portfolio.html">Portafolio</a>
+        <a href="blog.html">Blog</a>
+        <a href="cv.html">CV</a>
+        <a class="is-active" href="contact.html" aria-current="page">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">Contacto</p>
-      <h1>Disponible para proyectos, auditorías y capacitación técnica.</h1>
-      <p class="subtitle">
-        Trabajo con empresas que necesitan construir nuevos productos,
-        fortalecer aplicaciones existentes, automatizar procesos
-        y mejorar su postura de ciberseguridad.
-      </p>
-    </section>
-
-    <section class="expertise">
-      <h2>Servicios disponibles</h2>
-      <div class="grid">
-        <div class="card">Desarrollo backend Django / Python</div>
-        <div class="card">APIs seguras y escalables</div>
-        <div class="card">Hardening y auditoría OWASP</div>
-        <div class="card">Pentesting ético web</div>
-        <div class="card">Automatización y scripting</div>
-        <div class="card">Capacitación técnica en seguridad</div>
+      <div class="wrap">
+        <p class="eyebrow">Contacto</p>
+        <h1>Si el problema ya está en producción, escríbeme.</h1>
+        <p class="subtitle">
+          Desarrollo, auditoría, hardening y capacitación. Respondo en 24–48 horas
+          en días laborables. Un alcance claro acelera todo.
+        </p>
       </div>
     </section>
 
-    <section class="preview">
-      <h2>Canales de contacto</h2>
-      <p>
-        🔗 <strong>LinkedIn:</strong> <a href="https://linkedin.com/in/anthony-renzo-a-06a599196" target="_blank">linkedin.com/in/anthony-renzo-a-06a599196</a><br>
-        ✉️ <strong>Email:</strong> <a href="mailto:anthonyr594@outlook.com">anthonyr594@outlook.com</a>
-      </p>
-      <p>📅 Tiempo de respuesta estimado: 24–48 horas.</p>
+    <section class="section">
+      <div class="wrap contact-grid">
+        <div>
+          <h2>Qué puedo tomar</h2>
+          <div class="grid">
+            <article class="card"><strong>Backend</strong><p>Django / Python, APIs y modernización de módulos que ya duelen.</p></article>
+            <article class="card"><strong>AppSec</strong><p>Revisión de acceso, lógica de negocio y configuración. Pentest web con reglas.</p></article>
+            <article class="card"><strong>Automatización</strong><p>Jobs, reportes e integraciones que hoy dependen de una persona.</p></article>
+            <article class="card"><strong>Capacitación</strong><p>Sesiones para equipos de desarrollo sobre fallos que sí aparecen en audits.</p></article>
+          </div>
+        </div>
+        <aside class="card">
+          <strong>Canales</strong>
+          <p style="margin: 12px 0 8px"><a href="mailto:anthonyr594@outlook.com">anthonyr594@outlook.com</a></p>
+          <p><a href="https://www.linkedin.com/in/anthony-renzo-a-06a599196" rel="me noopener noreferrer" target="_blank">LinkedIn</a></p>
+          <p class="note" style="margin-top: 20px">Incluye contexto: stack, si hay producción, y si buscas build, review o ambos.</p>
+        </aside>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="index.html">Inicio</a></p>
+    </div>
   </footer>
 </body>
 </html>

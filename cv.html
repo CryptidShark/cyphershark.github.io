@@ -4,78 +4,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CV | CryptidShark</title>
+  <meta name="description" content="CV de Anthony Renzo A.: Django, Python, AppSec, automatización y sistemas en producción.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/cv.html">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="blog.html">Blog</a>
-      <a href="cv.html">CV</a>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="index.html">Inicio</a>
+        <a href="about.html">Sobre mí</a>
+        <a href="portfolio.html">Portafolio</a>
+        <a href="blog.html">Blog</a>
+        <a class="is-active" href="cv.html" aria-current="page">CV</a>
+        <a href="contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page">
+  <main id="contenido">
     <section class="hero">
-      <p class="eyebrow">CV</p>
-      <h1>Anthony Renzo A. — Backend Engineer | Django, Python, AppSec & Cybersecurity</h1>
-      <p class="subtitle">
-        Perfil orientado a desarrollo backend, automatización,
-        seguridad aplicada, auditoría técnica y optimización de
-        sistemas web en entornos reales de producción.
-      </p>
-    </section>
-
-    <section class="expertise">
-      <h2>Experiencia profesional (proyectos privados)</h2>
-      <div class="grid">
-        <div class="card">
-          <strong>Modernización de plataformas web</strong><br><br>
-          Refactorización de módulos backend, mejora de tiempos de
-          respuesta, optimización ORM y fortalecimiento de arquitectura Django.
-        </div>
-        <div class="card">
-          <strong>Seguridad y hardening</strong><br><br>
-          Auditorías OWASP, reducción de superficies de ataque,
-          mejora de configuraciones críticas y adopción de buenas prácticas defensivas.
-        </div>
-        <div class="card">
-          <strong>Automatización empresarial</strong><br><br>
-          Desarrollo de scripts y flujos con Python para integraciones,
-          reportes, limpieza de datos y reducción de tareas manuales.
+      <div class="wrap">
+        <p class="eyebrow">Curriculum</p>
+        <h1>Anthony Renzo A.</h1>
+        <p class="subtitle">
+          Backend Engineer. Django, Python, AppSec y operación de sistemas web.
+          Disponible para desarrollo, auditoría y acompañamiento técnico.
+        </p>
+        <div class="cta-group">
+          <a class="btn primary" href="https://www.linkedin.com/in/anthony-renzo-a-06a599196" rel="me noopener noreferrer" target="_blank">LinkedIn</a>
+          <a class="btn secondary" href="mailto:anthonyr594@outlook.com">anthonyr594@outlook.com</a>
         </div>
       </div>
-      <p style="margin-top: 20px;">📌 Para más detalles, visita mi <a href="https://linkedin.com/in/anthony-renzo-a-06a599196" target="_blank">LinkedIn</a>.</p>
     </section>
 
-    <section class="expertise">
-      <h2>Stack técnico</h2>
-      <div class="grid">
-        <div class="card">Python • Django • FastAPI</div>
-        <div class="card">REST APIs • Auth • JWT • OWASP</div>
-        <div class="card">Linux • Nginx • Docker</div>
-        <div class="card">Git • GitHub • CI/CD</div>
-        <div class="card">Automation • Debugging • Performance</div>
-        <div class="card">Ethical Hacking • AppSec</div>
+    <section class="section">
+      <div class="wrap">
+        <h2>Enfoque profesional</h2>
+        <div class="timeline">
+          <article>
+            <strong>Plataformas web en producción</strong>
+            <p>Refactor de backends Django, ORM y tiempos de respuesta. El objetivo no es “reescribir todo”: es dejar el sistema más barato de operar.</p>
+          </article>
+          <article>
+            <strong>Seguridad y hardening</strong>
+            <p>Revisión OWASP, control de acceso, secretos, cabeceras y configuración. Priorizo lo explotable y lo que el negocio no puede permitirse ignorar.</p>
+          </article>
+          <article>
+            <strong>Automatización</strong>
+            <p>Flujos en Python para integraciones, reportes y datos sucios. Menos clics, menos copiar/pegar, menos incidentes por olvido.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section class="preview">
-      <h2>Objetivo profesional</h2>
-      <p>
-        Aportar valor en proyectos que requieran desarrollo backend,
-        fortalecimiento de seguridad, modernización de sistemas
-        y capacitación preventiva para reducir riesgo tecnológico.
-      </p>
+    <section class="section">
+      <div class="wrap">
+        <h2>Stack</h2>
+        <div class="grid">
+          <article class="card"><strong>Lenguajes</strong><p>Python, SQL, un poco de JS cuando el front toca la API.</p></article>
+          <article class="card"><strong>Web</strong><p>Django, REST, auth, JWT cuando aplica, FastAPI si el servicio es chico.</p></article>
+          <article class="card"><strong>Plataforma</strong><p>Linux, Nginx, Docker, GitHub y CI básico que no mienta.</p></article>
+          <article class="card"><strong>AppSec</strong><p>OWASP, revisión de APIs, pentest web ético con alcance escrito.</p></article>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="contact.html">Contacto</a></p>
+    </div>
   </footer>
 </body>
 </html>

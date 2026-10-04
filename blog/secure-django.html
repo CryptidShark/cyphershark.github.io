@@ -3,91 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan | CryptidShark</title>
-  <meta name="description" content="AppSec, lógica de negocio, APIs y OWASP. Técnicas manuales para detectar vulnerabilidades reales más allá de los scanners.">
-  <meta property="og:title" content="Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan">
-  <meta property="og:description" content="AppSec, lógica de negocio, APIs y OWASP. Técnicas manuales para detectar vulnerabilidades reales más allá de los scanners.">
+  <title>Pentesting web avanzado: 5 pasos para fallos que el scanner no ve | CryptidShark</title>
+  <meta name="description" content="Cómo priorizar acceso, lógica de negocio y configuración cuando el scan automático ya dijo que todo está limpio.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/blog/secure-django.html">
+  <meta property="og:title" content="Pentesting web avanzado: 5 pasos para fallos que el scanner no ve">
+  <meta property="og:description" content="Cómo priorizar acceso, lógica de negocio y configuración cuando el scan automático ya dijo que todo está limpio.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://cyphershark.github.io/blog/secure-django.html">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
   <header class="navbar">
-    <div class="brand">CryptidShark 🦈</div>
-    <nav>
-      <a href="../index.html">Home</a>
-      <a href="../about.html">About</a>
-      <a href="../portfolio.html">Portfolio</a>
-      <a href="../blog.html">Blog</a>
-      <a href="../cv.html">CV</a>
-      <a href="../contact.html">Contact</a>
-    </nav>
+    <div class="navbar-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="../index.html">Inicio</a>
+        <a href="../about.html">Sobre mí</a>
+        <a href="../portfolio.html">Portafolio</a>
+        <a class="is-active" href="../blog.html" aria-current="page">Blog</a>
+        <a href="../cv.html">CV</a>
+        <a href="../contact.html">Contacto</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="page article">
+  <main id="contenido" class="article-shell">
+    <a class="back-link" href="../blog.html">← Todos los artículos</a>
     <article>
-      <p class="eyebrow">Pentesting • AppSec • Técnicas avanzadas</p>
-      <h1>Pentesting web avanzado: 5 pasos para encontrar fallos críticos que los scanners automáticos nunca detectan</h1>
-      <p class="article-meta"><strong>Publicado:</strong> 1 de abril 2026 | <strong>Lectura:</strong> 3 min</p>
-      <p>Los scanners automáticos (Burp Suite Active Scan, Nessus, Nikto) son útiles para hallazgos ruidosos pero superficiales. Las vulnerabilidades que realmente ponen en riesgo un negocio suelen estar ocultas en <strong>lógica de negocio, validaciones inconsistentes y fallos de configuración humana</strong>. Aquí te muestro 5 pasos con técnicas que he usado en auditorías reales.</p>
-<h2>1. Mapeo de funcionalidades ocultas y parámetros olvidados</h2>
-<p>Los desarrolladores a menudo dejan endpoints de depuración, parámetros legacy o rutas no indexadas. Un scanner no los encuentra si no están enlazados desde el HTML.</p>
-<h3>Acción clave</h3>
+      <p class="eyebrow">AppSec · Pentesting · OWASP</p>
+      <h1>Pentesting web avanzado: 5 pasos para fallos que el scanner no ve</h1>
+      <p class="article-meta"><time datetime="2026-04-01">1 de abril 2026</time> · 3 min de lectura</p>
+      <nav class="toc" aria-label="Índice"><p>En esta página</p><div class="toc">
 <ul>
-<li>Fuzzear rutas con listas como <code>raft-medium-directories.txt</code> o <code>common.txt</code> (ffuf, gobuster).</li>
-<li>Revisar <strong>JavaScripts empaquetados</strong> en busca de rutas internas. Ejemplo: usar <code>grep -roh "https?://[^\"]*" *.js</code>.</li>
-<li><strong>Dato poco conocido:</strong> muchas APIs exponen un <code>/swagger</code>, <code>/openapi.json</code> o <code>/v3/api-docs</code> sin autenticación. Busca esos endpoints.</li>
+<li><a href="#1-inventario-de-lo-que-el-html-no-ensena">1. Inventario de lo que el HTML no enseña</a></li>
+<li><a href="#2-control-de-acceso-no-solo-el-login-funciona">2. Control de acceso, no solo “el login funciona”</a></li>
+<li><a href="#3-logica-de-negocio">3. Lógica de negocio</a></li>
+<li><a href="#4-proxies-cache-y-cabeceras-de-confianza">4. Proxies, caché y cabeceras de confianza</a></li>
+<li><a href="#5-rate-limit-y-waf-como-capa-no-como-diseno">5. Rate limit y WAF como capa, no como diseño</a></li>
+<li><a href="#como-usarlo-en-un-equipo">Cómo usarlo en un equipo</a></li>
 </ul>
-<h2>2. Validación de control de acceso horizontal y vertical (IDOR + Privilege Escalation)</h2>
-<p>Los IDOR (Insecure Direct Object References) siguen siendo la joya del pentesting manual. Pero lo que pocos hacen es combinarlos con cambios de método HTTP.</p>
-<h3>Pasos concretos</h3>
+</div>
+</nav>
+      <div class="article-body">
+        <p>Este texto es una guía de <strong>auditoría autorizada</strong>. Sirve para equipos que ya tienen alcance, entorno de pruebas y un dueño del riesgo. No es un recetario para atacar sistemas ajenos.</p>
+<p>Los scanners (Burp Active Scan, Nessus, Nikto y similares) son buenos para ruido conocido: cabeceras flojas, software viejo, XSS obvio. Las pérdidas de dinero suelen estar en otro sitio: <strong>objetos mal protegidos, reglas de negocio rotas y proxies que confían de más</strong>.</p>
+<p>Abajo va el orden en el que yo reviso una app web cuando el informe automático llegó “verde”.</p>
+<h2 id="1-inventario-de-lo-que-el-html-no-ensena">1. Inventario de lo que el HTML no enseña</h2>
+<p>Un crawler solo sigue enlaces. Lo peligroso a menudo vive en JS empaquetado, rutas legacy y docs de API olvidadas.</p>
+<p>Qué revisar, con permiso y en el entorno acordado:</p>
 <ul>
-<li>Interceptar peticiones con IDs numéricos o UUID y probar variaciones (id=1→2, UUID incremental).</li>
-<li><strong>Payload poco conocido:</strong> si el ID está en JSON: <code>{"user_id": 123}</code>, probar <code>{"user_id": {"$ne": null}}</code> (inyección NoSQL en APIs).</li>
-<li>Cambiar <code>GET /profile/123</code> a <code>POST /profile/123</code> con cuerpo vacío. A veces el método no está bien restringido.</li>
-<li>Probar cabeceras como <code>X-Original-URL: /admin</code> o <code>X-Rewrite-URL: /admin</code> para saltar reglas de autenticación.</li>
+<li>Directorios y rutas que el front ya no muestra.</li>
+<li>Bundles JS: URLs internas, feature flags, clientes de API.</li>
+<li>Contratos abiertos: <code>/openapi.json</code>, <code>/swagger</code>, <code>/v3/api-docs</code>.</li>
 </ul>
-<h2>3. Ataque a flujos de negocio (Business Logic Abuse)</h2>
-<p>Aquí los scanners son ciegos. Se trata de violar la lógica esperada: descuentos acumulables, puntos de fidelización, procesos de checkout.</p>
-<h3>Técnicas clave</h3>
+<p><strong>Por qué el scanner falla:</strong> no adivina un endpoint que nadie linkea.</p>
+<p><strong>Qué arreglar:</strong> inventario de rutas, auth en la documentación interna, y apagar lo que ya no se usa.</p>
+<h2 id="2-control-de-acceso-no-solo-el-login-funciona">2. Control de acceso, no solo “el login funciona”</h2>
+<p>IDOR y subida de privilegios siguen pagando incidentes. El patrón es simple: el usuario autenticado puede leer o mutar el objeto de otro.</p>
+<p>Señales:</p>
 <ul>
-<li>En carritos de compra: agregar un producto, cambiar la cantidad a valor negativo, o repetir la misma solicitud de cupón varias veces.</li>
-<li><strong>Ejemplo real:</strong> una plataforma de gift cards permitía canjear la misma tarjeta dos veces si se enviaban dos peticiones en paralelo (race condition). Usa Turbo Intruder de PortSwigger.</li>
-<li>Revisar parámetros de precio ocultos en HTML: a veces el precio está en un campo <code>value="199.99"</code> pero el backend no lo valida.</li>
+<li>IDs en path, query o JSON sin comprobar pertenencia en servidor.</li>
+<li>El mismo recurso acepta un verbo HTTP que nadie pensó (un <code>GET</code> endurecido y un <code>POST</code> flojo).</li>
+<li>Confiar en cabeceras de rewrite (<code>X-Original-URL</code> y primas) para decidir si algo es admin.</li>
 </ul>
-<h2>4. Explotación de cabeceras HTTP mal configuradas y cache poisoning</h2>
-<p>Pocos pentesters explotan a fondo cabeceras como <code>X-Forwarded-Host</code>, <code>X-Forwarded-Scheme</code> o <code>X-Original-URL</code> para manipular cachés o redirigir a sitios maliciosos.</p>
-<h3>Pruebas manuales</h3>
+<p><strong>Remediación:</strong> autorización por objeto en el backend, tests de “usuario A no toca recurso de B”, y negar por defecto cualquier cabecera de proxy que no hayáis puesto vosotros.</p>
+<h2 id="3-logica-de-negocio">3. Lógica de negocio</h2>
+<p>Aquí el scanner es ciego. Cupones, saldos, gift cards, checkout y puntos de fidelización no tienen firma en OWASP ZAP.</p>
+<p>Preguntas útiles:</p>
 <ul>
-<li>Envía <code>X-Forwarded-Host: evil.com</code> y observa si los enlaces generados por la app usan ese valor (redirección abierta en caché).</li>
-<li>Si la app usa <code>X-Forwarded-For</code> para whitelist de IPs, prueba <code>X-Forwarded-For: 127.0.0.1</code> o <code>X-Real-IP: 127.0.0.1</code>.</li>
-<li><strong>Dato poco conocido:</strong> algunos proxies internos confían en <code>X-Original-URL</code> para reescribir rutas. Un atacante puede acceder a <code>/admin</code> enviando <code>X-Original-URL: /admin</code> en una petición a una ruta pública.</li>
+<li>¿Puedo aplicar dos veces el mismo descuento si envío las peticiones juntas?</li>
+<li>¿El precio viaja en el cliente y el servidor lo cree?</li>
+<li>¿Un valor negativo o un estado “cancelado” rompe el flujo a mi favor?</li>
 </ul>
-<h2>5. Bypass de rate limiting y WAF con técnicas de ofuscación</h2>
-<p>Los rate limits basados en IP se saltan fácilmente con listas de proxies o rotación de IP. Pero también hay trucos de ofuscación para evitar WAFs en login/registro.</p>
-<h3>Métodos prácticos</h3>
+<p><strong>Remediación:</strong> invariantes en servidor, idempotencia en canjes, y pruebas de carrera en los flujos que mueven dinero.</p>
+<h2 id="4-proxies-cache-y-cabeceras-de-confianza">4. Proxies, caché y cabeceras de confianza</h2>
+<p><code>X-Forwarded-Host</code>, <code>X-Forwarded-For</code>, <code>X-Original-URL</code> y primas son útiles detrás de un edge que controláis. Si la app las cree en crudo, alguien las va a rellenar.</p>
+<p>Efectos típicos: enlaces mal generados, cache poisoning, bypass de “solo red interna”.</p>
+<p><strong>Remediación:</strong> el reverse proxy pisa esas cabeceras; la app no las usa para auth ni para construir URLs públicas si no están firmadas por infra.</p>
+<h2 id="5-rate-limit-y-waf-como-capa-no-como-diseno">5. Rate limit y WAF como capa, no como diseño</h2>
+<p>Limitar por IP es un parche. Ofuscación de JSON, aliases de GraphQL y cache-busters existen porque el control está en el borde, no en el dominio.</p>
+<p>Un WAF bien tunado reduce basura. No sustituye:</p>
 <ul>
-<li>Agregar parámetros aleatorios: <code>/login?nocache=123456789</code> para que el WAF no agrupe las peticiones.</li>
-<li>Cambiar el caso de caracteres en JSON: <code>{"userName": "admin"}</code> vs <code>{"username": "admin"}</code>.</li>
-<li>En GraphQL, usar alias múltiples para ejecutar muchas consultas en una sola petición:</li>
+<li>lockout o backoff en login,</li>
+<li>cuota por cuenta, no solo por IP,</li>
+<li>validación estricta del schema.</li>
 </ul>
-<pre><code>{
-  a: user(id:1){ email },
-  b: user(id:2){ email },
-  c: user(id:3){ email }
-}
-</code></pre>
-<ul>
-<li><strong>Payload para WAFs de SQLi:</strong> usar comentarios anidados <code>/*!50000 UNION/*!/*!/*!/*! SELECT*/</code>.</li>
-</ul>
-<h2>Conclusión: el valor del pentesting manual</h2>
-<p>Los scanners encuentran el 30% de las vulnerabilidades. El 70% restante —fallos de lógica, negocio y configuración— solo se descubren con pensamiento crítico y conocimiento profundo del framework subyacente. Empresas que entienden esto invierten en auditorías combinadas.</p>
-<p>Si necesitas ayuda para auditar tu aplicación o capacitar a tu equipo en estas técnicas, <a href="../contact.html">contáctame</a>.</p>
+<h2 id="como-usarlo-en-un-equipo">Cómo usarlo en un equipo</h2>
+<ol>
+<li>Alcance por escrito.</li>
+<li>Recorrer flujos de negocio con dos usuarios de verdad.</li>
+<li>Anotar impacto (datos, dinero, reputación), no el nombre de la CVE.</li>
+<li>Parchear en código y config; volver a probar el mismo caso.</li>
+</ol>
+<p>Los porcentajes de “el scanner pilla el 30%” son marketing. Lo medible es: <strong>cuántos de vuestros flujos de dinero y de identidad tienen test de autorización</strong>.</p>
+<p>Si quieres una revisión con alcance y entregable accionable, <a href="../contact.html">escribe</a>.</p>
+      </div>
     </article>
+    <aside class="page-cta">
+      <strong>¿Te sirve esto en un sistema real?</strong>
+      <p class="section-intro">Auditorías y desarrollo con alcance escrito. Sin teatro de scanner.</p>
+      <a class="btn primary" href="../contact.html">Hablar</a>
+    </aside>
   </main>
 
   <footer class="footer">
-    <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="../blog.html">Blog</a></p>
+    </div>
   </footer>
 </body>
 </html>
