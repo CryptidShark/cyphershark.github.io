@@ -54,12 +54,25 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}} | CryptidShark</title>
   <meta name="description" content="{{description}}">
+  <meta name="author" content="Anthony Renzo A.">
   <meta name="theme-color" content="#0b0d11">
   <link rel="canonical" href="{{url}}">
+  <meta property="og:site_name" content="CryptidShark">
+  <meta property="og:locale" content="es_ES">
   <meta property="og:title" content="{{title}}">
   <meta property="og:description" content="{{description}}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="{{url}}">
+  <meta property="og:image" content="{{image}}">
+  <meta property="og:image:secure_url" content="{{image}}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{title}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{title}}">
+  <meta name="twitter:description" content="{{description}}">
+  <meta name="twitter:image" content="{{image}}">
   <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -127,6 +140,19 @@ BLOG_INDEX_TEMPLATE = """<!DOCTYPE html>
   <meta name="description" content="Tutoriales de backend, AppSec y automatización. Publicación programada desde el repo.">
   <meta name="theme-color" content="#0b0d11">
   <link rel="canonical" href="{{site_url}}/blog.html">
+  <meta property="og:site_name" content="CryptidShark">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="Blog | CryptidShark">
+  <meta property="og:description" content="Tutoriales de backend, AppSec y automatización.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{site_url}}/blog.html">
+  <meta property="og:image" content="{{image}}">
+  <meta property="og:image:secure_url" content="{{image}}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{image}}">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -313,7 +339,7 @@ def post_card(post: dict, featured: bool = False, href_prefix: str = "blog/") ->
     )
 
 
-def share_bar(url: str, title: str) -> str:
+def share_bar(url: str, title: str, excerpt: str = "") -> str:
     q_url = quote(url, safe="")
     q_title = quote(title, safe="")
     linkedin = html.escape(f"https://www.linkedin.com/sharing/share-offsite/?url={q_url}")
@@ -327,21 +353,26 @@ def share_bar(url: str, title: str) -> str:
         f'<li><a class="share-btn" href="{linkedin}" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>'
         f'<li><a class="share-btn" href="{twitter}" target="_blank" rel="noopener noreferrer">X</a></li>'
         f'<li><a class="share-btn" href="{facebook}" target="_blank" rel="noopener noreferrer">Facebook</a></li>'
-        f'<li><button type="button" class="share-btn" data-copy="{copied}" title="Instagram no admite compartir un enlace al feed. Se copia la URL para pegarla en la app.">Instagram</button></li>'
+        f'<li><button type="button" class="share-btn" data-copy="{copied}" title="Instagram no admite vista previa de enlaces. Se copia la URL para pegarla en la app.">Instagram</button></li>'
         "</ul>"
         "</div>"
     )
 
 
 def write_article(post: dict, site_url: str) -> None:
+    from og_image import write_og_image
+
     BLOG_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{site_url.rstrip('/')}/blog/{post['slug']}.html"
+    image = f"{site_url.rstrip('/')}/assets/img/og/{post['slug']}.png"
+    write_og_image(post["slug"], post["title"])
     body, toc = render_markdown(post["body"])
     html_doc = fill(
         ARTICLE_TEMPLATE,
         title=html.escape(post["title"]),
         description=html.escape(post["excerpt"]),
         url=html.escape(url),
+        image=html.escape(image),
         fonts=FONTS,
         tags=html.escape(" · ".join(post["tags"]) or "Tutorial"),
         date_iso=post["publish_at"].date().isoformat(),
@@ -349,7 +380,7 @@ def write_article(post: dict, site_url: str) -> None:
         reading_time=str(reading_minutes(post["body"])),
         toc=toc,
         body=body,
-        share=share_bar(url, post["title"]),
+        share=share_bar(url, post["title"], post["excerpt"]),
         year=str(datetime.now(SITE_TZ).year),
     )
     (BLOG_DIR / f"{post['slug']}.html").write_text(html_doc, encoding="utf-8")
@@ -372,6 +403,7 @@ def write_index(live_posts: list[dict], site_url: str) -> None:
             year=str(datetime.now(SITE_TZ).year),
             fonts=FONTS,
             site_url=html.escape(site_url.rstrip("/")),
+            image=html.escape(f"{site_url.rstrip('/')}/assets/img/og/default.png"),
         ),
         encoding="utf-8",
     )
@@ -458,6 +490,9 @@ def cmd_new(args: argparse.Namespace) -> None:
 
 
 def cmd_build(args: argparse.Namespace) -> list[dict]:
+    from og_image import write_default_og
+
+    write_default_og()
     now = datetime.now(SITE_TZ)
     site_url = args.site_url.rstrip("/")
     posts = load_posts()
