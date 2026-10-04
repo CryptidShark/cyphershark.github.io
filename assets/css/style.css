@@ -308,6 +308,26 @@ a.post-card:hover {
   padding: 24px;
 }
 
+.post-card-cover,
+.article-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.post-card-cover {
+  margin-bottom: 16px;
+}
+
+.article-cover {
+  margin: 8px 0 28px;
+}
+
 .post-card--featured {
   background:
     radial-gradient(600px 180px at 100% 0%, var(--glow), transparent 50%),

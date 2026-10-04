@@ -7,6 +7,7 @@ import argparse
 import html
 import json
 import re
+import shutil
 import sys
 import unicodedata
 from datetime import datetime
@@ -73,6 +74,7 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
   <meta name="twitter:title" content="{{title}}">
   <meta name="twitter:description" content="{{description}}">
   <meta name="twitter:image" content="{{image}}">
+  <link rel="image_src" href="{{image}}">
   <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,6 +108,7 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
       <p class="eyebrow">{{tags}}</p>
       <h1>{{title}}</h1>
       <p class="article-meta"><time datetime="{{date_iso}}">{{date_label}}</time> · {{reading_time}} min de lectura</p>
+      <img class="article-cover" src="{{cover}}" width="1200" height="630" alt="{{title}}">
       {{share}}
       {{toc}}
       <div class="article-body">
@@ -326,8 +329,10 @@ def post_card(post: dict, featured: bool = False, href_prefix: str = "blog/") ->
     klass = "post-card post-card--featured" if featured else "post-card"
     chips = "".join(f"<li>{html.escape(tag)}</li>" for tag in post["tags"])
     chips_html = f'<ul class="chips">{chips}</ul>' if chips else ""
+    cover = f"assets/img/og/{html.escape(post['slug'])}.png"
     return (
         f'<a class="{klass}" href="{href_prefix}{html.escape(post["slug"])}.html">'
+        f'<img class="post-card-cover" src="{cover}" width="1200" height="630" alt="">'
         f'<div class="post-card-meta">'
         f'<time datetime="{post["publish_at"].date().isoformat()}">{html.escape(format_date_es(post["publish_at"]))}</time>'
         f'<span>{reading_minutes(post["body"])} min</span>'
@@ -364,8 +369,11 @@ def write_article(post: dict, site_url: str) -> None:
 
     BLOG_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{site_url.rstrip('/')}/blog/{post['slug']}.html"
-    image = f"{site_url.rstrip('/')}/assets/img/og/{post['slug']}.png"
-    write_og_image(post["slug"], post["title"])
+    og_path = write_og_image(post["slug"], post["title"])
+    cover_name = f"{post['slug']}-og.png"
+    shutil.copyfile(og_path, BLOG_DIR / cover_name)
+    image = f"{site_url.rstrip('/')}/blog/{cover_name}"
+    cover = cover_name
     body, toc = render_markdown(post["body"])
     html_doc = fill(
         ARTICLE_TEMPLATE,
@@ -373,6 +381,7 @@ def write_article(post: dict, site_url: str) -> None:
         description=html.escape(post["excerpt"]),
         url=html.escape(url),
         image=html.escape(image),
+        cover=html.escape(cover),
         fonts=FONTS,
         tags=html.escape(" · ".join(post["tags"]) or "Tutorial"),
         date_iso=post["publish_at"].date().isoformat(),
