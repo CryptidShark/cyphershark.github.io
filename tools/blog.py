@@ -98,9 +98,9 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
       </div>
     </article>
     <aside class="page-cta">
-      <strong>¿Te sirve esto en un sistema real?</strong>
-      <p class="section-intro">Auditorías y desarrollo con alcance escrito. Sin teatro de scanner.</p>
-      <a class="btn primary" href="../contact.html">Hablar</a>
+      <strong>¿Necesitas una revisión o apoyo similar?</strong>
+      <p class="section-intro">Auditorías y desarrollo con alcance acordado.</p>
+      <a class="btn primary" href="../contact.html">Contactar</a>
     </aside>
   </main>
 
@@ -154,10 +154,10 @@ BLOG_INDEX_TEMPLATE = """<!DOCTYPE html>
     <section class="hero">
       <div class="wrap">
         <p class="eyebrow">Blog técnico</p>
-        <h1>Notas de ingeniería, no hilos de LinkedIn reciclados.</h1>
+        <h1>Tutoriales de backend, AppSec y automatización.</h1>
         <p class="subtitle">
-          Backend, AppSec y automatización con pasos que puedes aplicar.
-          Los tutoriales se escriben en Markdown, se programan y salen solos.
+          Artículos técnicos con pasos aplicables a sistemas reales:
+          Django, Python, seguridad web y operación.
         </p>
       </div>
     </section>
@@ -235,6 +235,8 @@ def load_posts() -> list[dict]:
     posts = []
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
     for path in sorted(POSTS_DIR.glob("*.md")):
+        if path.name.startswith("_"):
+            continue
         meta, body = split_frontmatter(path.read_text(encoding="utf-8"))
         title = str(meta.get("title") or path.stem)
         slug = str(meta.get("slug") or slugify(title))
@@ -388,7 +390,10 @@ def write_sitemap(live_posts: list[dict], site_url: str) -> None:
 
 def cmd_new(args: argparse.Namespace) -> None:
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
-    publish_at = parse_dt(args.at) if args.at else datetime.now(SITE_TZ)
+    if getattr(args, "now", False) or not args.at:
+        publish_at = datetime.now(SITE_TZ)
+    else:
+        publish_at = parse_dt(args.at)
     slug = args.slug or slugify(args.title)
     filename = f"{publish_at.strftime('%Y-%m-%d')}-{slug}.md"
     path = POSTS_DIR / filename
@@ -396,6 +401,7 @@ def cmd_new(args: argparse.Namespace) -> None:
         raise SystemExit(f"Ya existe {path}")
     status = "scheduled" if publish_at > datetime.now(SITE_TZ) else "published"
     tags = [item.strip() for item in (args.tags or "Tutorial").split(",") if item.strip()]
+    share = not getattr(args, "no_linkedin", False)
     doc = {
         "title": args.title,
         "slug": slug,
@@ -403,7 +409,7 @@ def cmd_new(args: argparse.Namespace) -> None:
         "status": status,
         "tags": tags,
         "excerpt": args.excerpt or "",
-        "linkedin": True,
+        "linkedin": share,
         "linkedin_text": "",
     }
     front = yaml.safe_dump(doc, allow_unicode=True, sort_keys=False).strip()
@@ -419,6 +425,11 @@ def cmd_new(args: argparse.Namespace) -> None:
     )
     print(f"Creado {path.relative_to(ROOT)}")
     print(f"Estado: {status} | Publicación: {publish_at.isoformat()}")
+    print(f"LinkedIn: {'sí, al publicarse' if share else 'no'}")
+    print("1) Edita ese archivo.")
+    print("2) Opcional: python tools/blog.py build")
+    print("3) git add content/posts && git commit -m \"blog: título\" && git push")
+    print("   GitHub Actions publica el HTML y, con secrets, lo comparte en LinkedIn.")
 
 
 def cmd_build(args: argparse.Namespace) -> list[dict]:
@@ -480,6 +491,34 @@ def cmd_publish(args: argparse.Namespace) -> None:
             print(f"  - {post['slug']}")
 
 
+def cmd_linkedin(_args: argparse.Namespace) -> None:
+    print(
+        """Una sola vez:
+
+1. App en https://www.linkedin.com/developers/
+   Productos: Sign In with LinkedIn using OpenID Connect + Share on LinkedIn
+   Redirect: https://www.linkedin.com/developers/tools/oauth/redirect
+
+2. export LINKEDIN_CLIENT_ID=... LINKEDIN_CLIENT_SECRET=...
+   python tools/linkedin_auth.py url
+   Autoriza, copia el code de la URL.
+
+3. python tools/linkedin_auth.py token PEGA_EL_CODE
+
+4. GitHub → Settings → Secrets → Actions:
+   LINKEDIN_ACCESS_TOKEN
+   LINKEDIN_AUTHOR_URN
+   (opcional) SITE_URL=https://cyphershark.github.io
+
+5. Settings → Actions → General → Read and write permissions
+
+Cada post nuevo trae linkedin: true. Al hacer git push, el workflow
+publica el artículo y lo comparte. El token dura ~60 días; si deja
+de publicarse, repite los pasos 2–4.
+"""
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Blog de tutoriales para GitHub Pages")
     parser.add_argument("--site-url", default=DEFAULT_SITE_URL, help="URL pública del sitio")
@@ -488,9 +527,11 @@ def build_parser() -> argparse.ArgumentParser:
     new_p = sub.add_parser("new", help="Crear un tutorial en Markdown")
     new_p.add_argument("title", help="Título del tutorial")
     new_p.add_argument("--at", help="Fecha/hora de publicación, ej. 2026-10-20 09:00")
+    new_p.add_argument("--now", action="store_true", help="Publicable en cuanto hagas push")
     new_p.add_argument("--slug", help="Slug de la URL")
     new_p.add_argument("--tags", help="Tags separados por coma")
     new_p.add_argument("--excerpt", help="Resumen corto")
+    new_p.add_argument("--no-linkedin", action="store_true", help="No compartir en LinkedIn")
     new_p.set_defaults(func=cmd_new)
 
     build_p = sub.add_parser("build", help="Generar HTML de los posts ya vencidos")
@@ -503,6 +544,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="También compartir posts ya publicados que aún no se enviaron a LinkedIn",
     )
     publish_p.set_defaults(func=cmd_publish)
+
+    li_p = sub.add_parser("linkedin", help="Cómo conectar LinkedIn (una sola vez)")
+    li_p.set_defaults(func=cmd_linkedin)
     return parser
 
 

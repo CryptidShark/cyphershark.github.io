@@ -488,6 +488,43 @@ a.post-card:hover {
   padding-left: 14px;
 }
 
+.creds {
+  display: grid;
+  gap: 12px;
+}
+
+.cred {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 16px;
+  align-items: baseline;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.cred strong {
+  display: block;
+}
+
+.cred .issuer {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.cred time {
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cred {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 860px) {
   .nav-burger {
     display: inline-flex;
