@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WSL2 como laboratorio DevOps: un entorno Linux reproducible sobre Windows | CryptidShark</title>
+  <meta name="description" content="Windows como host, Linux como entorno de trabajo y Docker como infraestructura: cómo montar un laboratorio DevOps reproducible en WSL2, con Compose, scripts y Git.">
+  <meta name="theme-color" content="#0b0d11">
+  <link rel="canonical" href="https://cyphershark.github.io/blog/wsl2-laboratorio-devops.html">
+  <meta property="og:title" content="WSL2 como laboratorio DevOps: un entorno Linux reproducible sobre Windows">
+  <meta property="og:description" content="Windows como host, Linux como entorno de trabajo y Docker como infraestructura: cómo montar un laboratorio DevOps reproducible en WSL2, con Compose, scripts y Git.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://cyphershark.github.io/blog/wsl2-laboratorio-devops.html">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a class="brand" href="../index.html">
+        <img src="../assets/img/favicon.svg" alt="">
+        CryptidShark
+      </a>
+      <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-hidden="true" tabindex="-1">
+      <label class="nav-burger" for="nav-toggle" aria-label="Abrir menú"><span></span></label>
+      <nav aria-label="Principal">
+        <a href="../index.html">Inicio</a>
+        <a href="../about.html">Sobre mí</a>
+        <a href="../portfolio.html">Portafolio</a>
+        <a class="is-active" href="../blog.html" aria-current="page">Blog</a>
+        <a href="../cv.html">CV</a>
+        <a href="../contact.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido" class="article-shell">
+    <a class="back-link" href="../blog.html">← Todos los artículos</a>
+    <article>
+      <p class="eyebrow">WSL2 · DevOps · Docker · Linux</p>
+      <h1>WSL2 como laboratorio DevOps: un entorno Linux reproducible sobre Windows</h1>
+      <p class="article-meta"><time datetime="2026-10-04">4 de octubre 2026</time> · 8 min de lectura</p>
+      <div class="share"><p class="share-label">Compartir</p><ul class="share-list"><li><a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html" target="_blank" rel="noopener noreferrer">LinkedIn</a></li><li><a class="share-btn" href="https://x.com/intent/tweet?url=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html&amp;text=WSL2%20como%20laboratorio%20DevOps%3A%20un%20entorno%20Linux%20reproducible%20sobre%20Windows" target="_blank" rel="noopener noreferrer">X</a></li><li><a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html" target="_blank" rel="noopener noreferrer">Facebook</a></li><li><button type="button" class="share-btn" data-copy="https://cyphershark.github.io/blog/wsl2-laboratorio-devops.html" title="Instagram no admite compartir un enlace al feed. Se copia la URL para pegarla en la app.">Instagram</button></li></ul></div>
+      <nav class="toc" aria-label="Índice"><p>En esta página</p><div class="toc">
+<ul>
+<li><a href="#1-por-que-esta-arquitectura">1. Por qué esta arquitectura</a></li>
+<li><a href="#2-comprobar-el-estado-de-wsl">2. Comprobar el estado de WSL</a></li>
+<li><a href="#3-mantener-wsl-actualizado">3. Mantener WSL actualizado</a></li>
+<li><a href="#4-systemd">4. systemd</a></li>
+<li><a href="#5-wslconf-frente-a-wslconfig">5. wsl.conf frente a .wslconfig</a><ul>
+<li><a href="#etcwslconf">/etc/wsl.conf</a></li>
+<li><a href="#userprofilewslconfig">%UserProfile%\.wslconfig</a></li>
+</ul>
+</li>
+<li><a href="#6-preparar-ubuntu">6. Preparar Ubuntu</a></li>
+<li><a href="#7-donde-guardar-el-codigo">7. Dónde guardar el código</a></li>
+<li><a href="#8-docker-una-sola-capa-de-infraestructura">8. Docker: una sola capa de infraestructura</a></li>
+<li><a href="#9-primera-regla-del-entorno">9. Primera regla del entorno</a></li>
+<li><a href="#10-primer-laboratorio">10. Primer laboratorio</a></li>
+<li><a href="#11-levantar-la-infraestructura">11. Levantar la infraestructura</a></li>
+<li><a href="#12-logs-sin-entrar-al-contenedor">12. Logs sin entrar al contenedor</a></li>
+<li><a href="#13-no-tratar-los-contenedores-como-cajas-negras">13. No tratar los contenedores como cajas negras</a></li>
+<li><a href="#14-persistencia">14. Persistencia</a></li>
+<li><a href="#15-automatizacion-diagnostico">15. Automatización: diagnóstico</a></li>
+<li><a href="#16-makefile-como-interfaz-del-proyecto">16. Makefile como interfaz del proyecto</a></li>
+<li><a href="#17-bootstrap">17. Bootstrap</a></li>
+<li><a href="#18-git-infraestructura-versionada">18. Git: infraestructura versionada</a></li>
+<li><a href="#19-variables-de-entorno">19. Variables de entorno</a></li>
+<li><a href="#20-una-comprobacion-util">20. Una comprobación útil</a></li>
+<li><a href="#21-administrar-wsl-desde-windows">21. Administrar WSL desde Windows</a></li>
+<li><a href="#22-automatizacion-hibrida">22. Automatización híbrida</a></li>
+<li><a href="#23-como-queda-el-proyecto">23. Cómo queda el proyecto</a></li>
+<li><a href="#24-que-no-automatizaria">24. Qué no automatizaría</a></li>
+<li><a href="#25-diagnostico-rapido">25. Diagnóstico rápido</a></li>
+<li><a href="#26-el-objetivo">26. El objetivo</a></li>
+<li><a href="#27-checklist">27. Checklist</a></li>
+<li><a href="#conclusion">Conclusión</a><ul>
+<li><a href="#referencias-tecnicas">Referencias técnicas</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</nav>
+      <div class="article-body">
+        <p><strong>Windows como host. Linux como entorno de trabajo. Docker como infraestructura. Scripts como automatización.</strong></p>
+<p>Durante mucho tiempo, trabajar con Linux desde Windows significaba elegir entre una máquina virtual, dual boot o aceptar las diferencias entre ambos entornos.</p>
+<p>Hoy existe una alternativa práctica para desarrollo: <strong>WSL2</strong>. Instalar Ubuntu dentro de WSL, sin embargo, no es lo mismo que construir un entorno de desarrollo.</p>
+<p>El objetivo de este artículo es otro:</p>
+<blockquote>
+<p>Un entorno Linux reproducible donde se pueda desarrollar, ejecutar servicios, automatizar tareas y administrar contenedores, sin convertir Windows en una colección de instalaciones independientes.</p>
+</blockquote>
+<p>La arquitectura final:</p>
+<pre><code class="language-text">┌─────────────────────────────────────────────┐
+│                 Windows 11                  │
+│                                             │
+│  VS Code / Terminal / herramientas Windows  │
+│                    │                        │
+│                    ▼                        │
+│             ┌──────────────┐                │
+│             │     WSL2     │                │
+│             │    Ubuntu    │                │
+│             └──────┬───────┘                │
+│                    │                        │
+│             Linux filesystem                │
+│                    │                        │
+│                    ▼                        │
+│             ┌──────────────┐                │
+│             │    Docker    │                │
+│             │   Compose    │                │
+│             └──────┬───────┘                │
+│                    │                        │
+│       ┌────────────┼────────────┐           │
+│       ▼            ▼            ▼           │
+│    Django      PostgreSQL     Redis         │
+│                                             │
+└─────────────────────────────────────────────┘
+</code></pre>
+<p>Cada capa tiene una responsabilidad concreta.</p>
+<h2 id="1-por-que-esta-arquitectura">1. Por qué esta arquitectura</h2>
+<p>WSL2 utiliza un kernel Linux real. Las distribuciones se integran con Windows. Microsoft recomienda comprobar la versión con:</p>
+<pre><code class="language-powershell">wsl --version
+</code></pre>
+<p>Las instalaciones nuevas con <code>wsl --install</code> usan WSL2 por defecto.</p>
+<p>Docker Desktop puede usar el backend WSL2 y dejar los comandos <code>docker</code> disponibles desde la distribución Linux.</p>
+<p>Eso evita una disposición poco práctica:</p>
+<pre><code class="language-text">Windows
+ ├── Python Windows
+ ├── PostgreSQL Windows
+ ├── Redis Windows
+ ├── Node Windows
+ ├── Docker Windows
+ └── herramientas Linux separadas
+</code></pre>
+<p>En su lugar:</p>
+<pre><code class="language-text">Windows
+   │
+   └── WSL2
+        │
+        └── Linux
+             │
+             └── Docker
+                  ├── PostgreSQL
+                  ├── Redis
+                  └── aplicaciones
+</code></pre>
+<p>Windows queda como anfitrión. Linux es el entorno de trabajo.</p>
+<h2 id="2-comprobar-el-estado-de-wsl">2. Comprobar el estado de WSL</h2>
+<p>Antes de instalar nada, conviene saber qué hay. Desde PowerShell:</p>
+<pre><code class="language-powershell">wsl --status
+wsl --version
+wsl -l -v
+</code></pre>
+<p>El último comando muestra las distribuciones y si usan WSL1 o WSL2. Una salida típica:</p>
+<pre><code class="language-text">  NAME      STATE           VERSION
+* Ubuntu    Running         2
+</code></pre>
+<p>Si aparece WSL1:</p>
+<pre><code class="language-powershell">wsl --set-version Ubuntu 2
+</code></pre>
+<h2 id="3-mantener-wsl-actualizado">3. Mantener WSL actualizado</h2>
+<p>WSL es software independiente:</p>
+<pre><code class="language-powershell">wsl --update
+wsl --shutdown
+wsl --status
+</code></pre>
+<p>Microsoft recomienda actualizarlo para soporte moderno, incluido systemd.</p>
+<h2 id="4-systemd">4. systemd</h2>
+<p>WSL moderno puede usar <strong>systemd</strong> y herramientas habituales:</p>
+<pre><code class="language-bash">systemctl
+journalctl
+</code></pre>
+<p>En Ubuntu instalado con <code>wsl --install</code>, systemd puede venir habilitado. En otras distros se activa en <code>/etc/wsl.conf</code>.</p>
+<p>Comprobación:</p>
+<pre><code class="language-bash">ps -p 1 -o comm=
+</code></pre>
+<p>Si responde <code>systemd</code>, es el PID 1.</p>
+<p>Para habilitarlo:</p>
+<pre><code class="language-bash">sudo nano /etc/wsl.conf
+</code></pre>
+<pre><code class="language-ini">[boot]
+systemd=true
+</code></pre>
+<p>Desde PowerShell:</p>
+<pre><code class="language-powershell">wsl --shutdown
+</code></pre>
+<p>Volver a entrar:</p>
+<pre><code class="language-powershell">wsl
+</code></pre>
+<pre><code class="language-bash">systemctl status
+</code></pre>
+<p>Microsoft documenta esta configuración y el reinicio con <code>wsl.exe --shutdown</code>.</p>
+<h2 id="5-wslconf-frente-a-wslconfig">5. <code>wsl.conf</code> frente a <code>.wslconfig</code></h2>
+<h3 id="etcwslconf"><code>/etc/wsl.conf</code></h3>
+<p>Pertenece a una distribución concreta (<code>Ubuntu</code> → <code>/etc/wsl.conf</code>). Puede controlar systemd, usuario predeterminado, interoperabilidad, automontaje y red.</p>
+<h3 id="userprofilewslconfig"><code>%UserProfile%\.wslconfig</code></h3>
+<p>Es global para WSL2 (<code>C:\Users\&lt;usuario&gt;\.wslconfig</code>). Afecta a la máquina virtual de WSL2.</p>
+<p>Microsoft distingue ambos niveles. Así se evita cambiar WSL entero cuando solo hace falta ajustar Ubuntu.</p>
+<h2 id="6-preparar-ubuntu">6. Preparar Ubuntu</h2>
+<p>Dentro de Ubuntu:</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt upgrade -y
+</code></pre>
+<p>Herramientas básicas:</p>
+<pre><code class="language-bash">sudo apt install -y \
+    git \
+    curl \
+    wget \
+    unzip \
+    zip \
+    jq \
+    tree \
+    htop \
+    ca-certificates
+</code></pre>
+<pre><code class="language-bash">git --version
+curl --version
+jq --version
+tree --version
+</code></pre>
+<p>Queda una base Linux limpia.</p>
+<h2 id="7-donde-guardar-el-codigo">7. Dónde guardar el código</h2>
+<p>Hay una diferencia de rendimiento importante. No conviene usar <code>/mnt/c/Users/&lt;usuario&gt;/...</code> como directorio principal de proyectos Linux.</p>
+<p>Para stacks con muchas operaciones de archivos (Node, Python, Docker), el código vive mejor en el filesystem Linux:</p>
+<pre><code class="language-bash">mkdir -p ~/workspace/projects
+cd ~/workspace/projects
+</code></pre>
+<pre><code class="language-text">~/workspace/
+└── projects/
+    ├── proyecto-01/
+    ├── proyecto-02/
+    └── laboratorio/
+</code></pre>
+<p>Desde Windows se puede abrir esa carpeta con <code>explorer.exe .</code>. WSL permite el acceso, pero el flujo intenso de archivos rinde mejor dentro de Linux.</p>
+<h2 id="8-docker-una-sola-capa-de-infraestructura">8. Docker: una sola capa de infraestructura</h2>
+<p>Con Docker Desktop e integración WSL2 no hace falta otro daemon Docker solo para los contenedores del laboratorio.</p>
+<p>Tras habilitar la distribución en Docker Desktop:</p>
+<pre><code class="language-bash">docker version
+docker compose version
+docker run --rm hello-world
+</code></pre>
+<p>Si aparece el mensaje de bienvenida, WSL2 y Docker se comunican.</p>
+<h2 id="9-primera-regla-del-entorno">9. Primera regla del entorno</h2>
+<blockquote>
+<p><strong>La infraestructura de los proyectos vive en Docker.</strong></p>
+</blockquote>
+<p>PostgreSQL no tiene que instalarse en Ubuntu. En lugar de servicios sueltos en el sistema:</p>
+<pre><code class="language-text">Ubuntu
+ │
+ └── Docker
+      ├── PostgreSQL
+      ├── Redis
+      └── aplicación
+</code></pre>
+<p>Así se pueden destruir y reconstruir servicios sin ensuciar el sistema operativo.</p>
+<h2 id="10-primer-laboratorio">10. Primer laboratorio</h2>
+<pre><code class="language-bash">cd ~/workspace/projects
+mkdir dev-lab
+cd dev-lab
+nano compose.yaml
+</code></pre>
+<pre><code class="language-yaml">services:
+
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: devdb
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - &quot;5432:5432&quot;
+
+  redis:
+    image: redis:8
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - &quot;6379:6379&quot;
+
+volumes:
+  postgres_data:
+  redis_data:
+</code></pre>
+<p>Las versiones de imagen forman parte de la infraestructura. En proyectos reales conviene fijarlas; las etiquetas flotantes hay que revisarlas.</p>
+<h2 id="11-levantar-la-infraestructura">11. Levantar la infraestructura</h2>
+<pre><code class="language-bash">docker compose up -d
+docker compose ps
+</code></pre>
+<p>Debería verse algo así:</p>
+<pre><code class="language-text">NAME              STATUS
+dev-lab-postgres  running
+dev-lab-redis     running
+</code></pre>
+<p>PostgreSQL y Redis corren sin instalarse en Ubuntu.</p>
+<h2 id="12-logs-sin-entrar-al-contenedor">12. Logs sin entrar al contenedor</h2>
+<pre><code class="language-bash">docker compose logs
+docker compose logs -f
+docker compose logs -f postgres
+docker compose logs -f redis
+</code></pre>
+<p>Útil cuando algo falla.</p>
+<h2 id="13-no-tratar-los-contenedores-como-cajas-negras">13. No tratar los contenedores como cajas negras</h2>
+<pre><code class="language-bash">docker compose ps
+docker stats
+docker network ls
+docker volume ls
+docker system df
+</code></pre>
+<p>No se trata de memorizar comandos, sino de poder responder: qué está en ejecución, dónde están los datos y qué recursos usan.</p>
+<h2 id="14-persistencia">14. Persistencia</h2>
+<p><code>docker compose down</code> elimina contenedores. Los volúmenes siguen.</p>
+<p>Por eso importan <code>postgres_data</code> y <code>redis_data</code>. Comprobación: <code>docker volume ls</code>.</p>
+<p>Para borrar también los datos:</p>
+<pre><code class="language-bash">docker compose down -v
+</code></pre>
+<p>Ese comando elimina los volúmenes definidos por Compose. No debe ir en scripts destructivos sin confirmación.</p>
+<pre><code class="language-text">docker compose down
+        └── elimina contenedores
+
+docker compose down -v
+        ├── elimina contenedores
+        └── elimina volúmenes
+</code></pre>
+<h2 id="15-automatizacion-diagnostico">15. Automatización: diagnóstico</h2>
+<pre><code class="language-bash">mkdir -p scripts
+nano scripts/status.sh
+</code></pre>
+<pre><code class="language-bash">#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo &quot;=== WSL ===&quot;
+uname -a
+
+echo
+echo &quot;=== Docker ===&quot;
+docker version --format 'Client: {{.Client.Version}}'
+docker version --format 'Server: {{.Server.Version}}'
+
+echo
+echo &quot;=== Containers ===&quot;
+docker compose ps
+
+echo
+echo &quot;=== Disk ===&quot;
+df -h /
+
+echo
+echo &quot;=== Memory ===&quot;
+free -h
+</code></pre>
+<pre><code class="language-bash">chmod +x scripts/status.sh
+./scripts/status.sh
+</code></pre>
+<h2 id="16-makefile-como-interfaz-del-proyecto">16. Makefile como interfaz del proyecto</h2>
+<pre><code class="language-makefile">up:
+    docker compose up -d
+
+down:
+    docker compose down
+
+logs:
+    docker compose logs -f
+
+status:
+    docker compose ps
+
+restart:
+    docker compose restart
+
+clean:
+    docker compose down -v
+
+shell:
+    bash
+</code></pre>
+<p><code>make up</code> equivale a <code>docker compose up -d</code>. La ventaja no es ahorrar caracteres: es una <strong>interfaz estable</strong> para el proyecto.</p>
+<h2 id="17-bootstrap">17. Bootstrap</h2>
+<pre><code class="language-bash">nano scripts/bootstrap.sh
+</code></pre>
+<pre><code class="language-bash">#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo &quot;[1/4] Actualizando paquetes...&quot;
+sudo apt update
+
+echo &quot;[2/4] Instalando herramientas...&quot;
+sudo apt install -y \
+    git \
+    curl \
+    wget \
+    jq \
+    tree \
+    htop \
+    ca-certificates
+
+echo &quot;[3/4] Comprobando Docker...&quot;
+
+if ! command -v docker &gt;/dev/null 2&gt;&amp;1; then
+    echo &quot;Docker no está disponible.&quot;
+    echo &quot;Instala Docker Desktop y habilita la integración WSL2.&quot;
+    exit 1
+fi
+
+echo &quot;[4/4] Comprobando Compose...&quot;
+docker compose version
+
+echo
+echo &quot;Entorno preparado correctamente.&quot;
+</code></pre>
+<pre><code class="language-bash">chmod +x scripts/bootstrap.sh
+./scripts/bootstrap.sh
+</code></pre>
+<p>El repositorio pasa a incluir instrucciones ejecutables para reconstruir el entorno.</p>
+<h2 id="18-git-infraestructura-versionada">18. Git: infraestructura versionada</h2>
+<pre><code class="language-bash">git init
+nano .gitignore
+</code></pre>
+<pre><code class="language-gitignore">.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+
+.venv/
+venv/
+
+node_modules/
+
+*.log
+
+.vscode/
+.idea/
+
+.DS_Store
+</code></pre>
+<pre><code class="language-bash">git add .
+git commit -m &quot;Initial development environment&quot;
+</code></pre>
+<blockquote>
+<p><strong>La infraestructura también es código.</strong></p>
+</blockquote>
+<p>El flujo deseable:</p>
+<pre><code class="language-text">Git → clone → bootstrap → Docker Compose → entorno reproducible
+</code></pre>
+<p>En lugar de “creo que mi máquina estaba configurada así”.</p>
+<h2 id="19-variables-de-entorno">19. Variables de entorno</h2>
+<p>No conviene dejar contraseñas reales en <code>compose.yaml</code>.</p>
+<pre><code class="language-env">POSTGRES_DB=devdb
+POSTGRES_USER=devuser
+POSTGRES_PASSWORD=change-me
+</code></pre>
+<pre><code class="language-bash">cp .env.example .env
+</code></pre>
+<p><code>.gitignore</code> evita subir <code>.env</code>. Se comparte <code>.env.example</code>, no los secretos.</p>
+<h2 id="20-una-comprobacion-util">20. Una comprobación útil</h2>
+<pre><code class="language-bash">docker compose ps
+docker compose config
+docker compose logs --tail=50
+git status
+</code></pre>
+<ul>
+<li>Docker: ¿la infraestructura está en pie?</li>
+<li>Compose config: ¿la configuración es válida?</li>
+<li>Logs: ¿hay errores?</li>
+<li>Git: ¿hay cambios sin versionar?</li>
+</ul>
+<h2 id="21-administrar-wsl-desde-windows">21. Administrar WSL desde Windows</h2>
+<pre><code class="language-powershell">wsl -l -v
+wsl --list --all
+wsl --shutdown
+wsl -d Ubuntu
+wsl -d Ubuntu -- uname -a
+</code></pre>
+<p>Windows puede ser el punto de entrada; Linux ejecuta las tareas.</p>
+<pre><code class="language-text">PowerShell → WSL → Bash → Docker
+</code></pre>
+<h2 id="22-automatizacion-hibrida">22. Automatización híbrida</h2>
+<pre><code class="language-powershell">wsl -d Ubuntu -- bash -lc &quot;cd ~/workspace/projects/dev-lab &amp;&amp; ./scripts/status.sh&quot;
+</code></pre>
+<p>Sirve para tareas programadas, scripts administrativos, CI local, mantenimiento, copias y comprobación de servicios.</p>
+<h2 id="23-como-queda-el-proyecto">23. Cómo queda el proyecto</h2>
+<pre><code class="language-text">dev-lab/
+├── compose.yaml
+├── Makefile
+├── .env.example
+├── .gitignore
+└── scripts/
+    ├── bootstrap.sh
+    └── status.sh
+</code></pre>
+<p>Conceptual:</p>
+<pre><code class="language-text">Windows → WSL2 / Ubuntu → Docker → PostgreSQL / Redis / aplicación → volúmenes
+</code></pre>
+<p>Git controla lo que debe ser reproducible.</p>
+<h2 id="24-que-no-automatizaria">24. Qué no automatizaría</h2>
+<p>Evitaría, sin confirmación:</p>
+<ul>
+<li><code>docker compose down -v</code></li>
+<li><code>sudo apt upgrade -y</code> en cada arranque</li>
+<li><code>git reset --hard</code> como rutina</li>
+</ul>
+<p>Una automatización razonable es repetible, predecible, auditable y reversible cuando se puede. Si un script puede borrar datos, que lo haga de forma explícita.</p>
+<h2 id="25-diagnostico-rapido">25. Diagnóstico rápido</h2>
+<p>Orden fijo cuando algo falle.</p>
+<p><strong>WSL</strong></p>
+<pre><code class="language-powershell">wsl --status
+wsl -l -v
+</code></pre>
+<p><strong>Linux</strong></p>
+<pre><code class="language-bash">uname -a
+systemctl status
+</code></pre>
+<p><strong>Docker</strong></p>
+<pre><code class="language-bash">docker version
+docker compose version
+</code></pre>
+<p><strong>Contenedores y logs</strong></p>
+<pre><code class="language-bash">docker compose ps
+docker compose logs --tail=100
+</code></pre>
+<p><strong>Recursos y red</strong></p>
+<pre><code class="language-bash">docker stats
+df -h
+free -h
+docker network ls
+</code></pre>
+<p>Así se evita ir lanzando comandos al azar.</p>
+<h2 id="26-el-objetivo">26. El objetivo</h2>
+<p>No basta con “Ubuntu instalado en Windows”. El destino es:</p>
+<pre><code class="language-text">Código
+  ├── Git
+  ├── configuración
+  ├── scripts
+  └── infraestructura → Docker → servicios reproducibles
+</code></pre>
+<p>La máquina deja de ser una configuración manual y pasa a ser una <strong>descripción ejecutable del entorno</strong>. Ese cambio importa más que memorizar cincuenta comandos.</p>
+<h2 id="27-checklist">27. Checklist</h2>
+<p>Cuando preparo un proyecto Linux/DevOps, quiero poder responder que sí:</p>
+<ul>
+<li>¿Uso WSL2 y está actualizado?</li>
+<li>¿systemd está disponible cuando lo necesito?</li>
+<li>¿El código vive en el filesystem Linux?</li>
+<li>¿Docker funciona desde WSL?</li>
+<li>¿Los servicios están en Compose y los datos en volúmenes?</li>
+<li>¿Las credenciales están fuera del repositorio y hay <code>.env.example</code>?</li>
+<li>¿Hay automatización de tareas repetitivas y un mecanismo de diagnóstico?</li>
+<li>¿La infraestructura está versionada y puedo reconstruir el entorno sin recordar cada paso?</li>
+</ul>
+<p>Si es así, ya no se trata solo de usar Linux desde Windows: es un entorno de desarrollo reproducible.</p>
+<h2 id="conclusion">Conclusión</h2>
+<p>WSL2 puede ser más que una terminal Linux en Windows:</p>
+<pre><code class="language-text">Windows → WSL2 → Linux → Docker → servicios → automatización → Git → entorno reproducible
+</code></pre>
+<p>La idea central:</p>
+<blockquote>
+<p><strong>Instalar menos cosas directamente. Declarar más cosas como código. Automatizar lo repetitivo. Versionar la infraestructura.</strong></p>
+</blockquote>
+<p>Ahí WSL deja de ser solo compatibilidad y funciona como un laboratorio DevOps.</p>
+<h3 id="referencias-tecnicas">Referencias técnicas</h3>
+<ul>
+<li>Microsoft: instalación y administración de WSL.</li>
+<li>Microsoft: <code>wsl.conf</code> y <code>.wslconfig</code>.</li>
+<li>Microsoft: systemd en WSL.</li>
+<li>Docker: backend WSL2 de Docker Desktop.</li>
+</ul>
+      </div>
+      <div class="share"><p class="share-label">Compartir</p><ul class="share-list"><li><a class="share-btn" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html" target="_blank" rel="noopener noreferrer">LinkedIn</a></li><li><a class="share-btn" href="https://x.com/intent/tweet?url=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html&amp;text=WSL2%20como%20laboratorio%20DevOps%3A%20un%20entorno%20Linux%20reproducible%20sobre%20Windows" target="_blank" rel="noopener noreferrer">X</a></li><li><a class="share-btn" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fcyphershark.github.io%2Fblog%2Fwsl2-laboratorio-devops.html" target="_blank" rel="noopener noreferrer">Facebook</a></li><li><button type="button" class="share-btn" data-copy="https://cyphershark.github.io/blog/wsl2-laboratorio-devops.html" title="Instagram no admite compartir un enlace al feed. Se copia la URL para pegarla en la app.">Instagram</button></li></ul></div>
+    </article>
+    <aside class="page-cta">
+      <strong>¿Necesitas una revisión o apoyo similar?</strong>
+      <p class="section-intro">Auditorías y desarrollo con alcance acordado.</p>
+      <a class="btn primary" href="../contact.html">Contactar</a>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>© 2026 CryptidShark — Backend & Security Engineering</p>
+      <p><a href="../blog.html">Blog</a></p>
+    </div>
+  </footer>
+  <script src="../assets/js/share.js" defer></script>
+</body>
+</html>

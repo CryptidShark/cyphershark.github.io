@@ -11,6 +11,7 @@ import sys
 import unicodedata
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import markdown
@@ -92,10 +93,12 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
       <p class="eyebrow">{{tags}}</p>
       <h1>{{title}}</h1>
       <p class="article-meta"><time datetime="{{date_iso}}">{{date_label}}</time> · {{reading_time}} min de lectura</p>
+      {{share}}
       {{toc}}
       <div class="article-body">
         {{body}}
       </div>
+      {{share}}
     </article>
     <aside class="page-cta">
       <strong>¿Necesitas una revisión o apoyo similar?</strong>
@@ -110,6 +113,7 @@ ARTICLE_TEMPLATE = """<!DOCTYPE html>
       <p><a href="../blog.html">Blog</a></p>
     </div>
   </footer>
+  <script src="../assets/js/share.js" defer></script>
 </body>
 </html>
 """
@@ -309,6 +313,26 @@ def post_card(post: dict, featured: bool = False, href_prefix: str = "blog/") ->
     )
 
 
+def share_bar(url: str, title: str) -> str:
+    q_url = quote(url, safe="")
+    q_title = quote(title, safe="")
+    linkedin = html.escape(f"https://www.linkedin.com/sharing/share-offsite/?url={q_url}")
+    twitter = html.escape(f"https://x.com/intent/tweet?url={q_url}&text={q_title}")
+    facebook = html.escape(f"https://www.facebook.com/sharer/sharer.php?u={q_url}")
+    copied = html.escape(url)
+    return (
+        '<div class="share">'
+        '<p class="share-label">Compartir</p>'
+        '<ul class="share-list">'
+        f'<li><a class="share-btn" href="{linkedin}" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>'
+        f'<li><a class="share-btn" href="{twitter}" target="_blank" rel="noopener noreferrer">X</a></li>'
+        f'<li><a class="share-btn" href="{facebook}" target="_blank" rel="noopener noreferrer">Facebook</a></li>'
+        f'<li><button type="button" class="share-btn" data-copy="{copied}" title="Instagram no admite compartir un enlace al feed. Se copia la URL para pegarla en la app.">Instagram</button></li>'
+        "</ul>"
+        "</div>"
+    )
+
+
 def write_article(post: dict, site_url: str) -> None:
     BLOG_DIR.mkdir(parents=True, exist_ok=True)
     url = f"{site_url.rstrip('/')}/blog/{post['slug']}.html"
@@ -325,6 +349,7 @@ def write_article(post: dict, site_url: str) -> None:
         reading_time=str(reading_minutes(post["body"])),
         toc=toc,
         body=body,
+        share=share_bar(url, post["title"]),
         year=str(datetime.now(SITE_TZ).year),
     )
     (BLOG_DIR / f"{post['slug']}.html").write_text(html_doc, encoding="utf-8")
