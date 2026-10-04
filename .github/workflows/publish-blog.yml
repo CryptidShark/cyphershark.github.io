@@ -1,0 +1,64 @@
+name: Publish blog
+
+on:
+  schedule:
+    - cron: "10 * * * *"
+  push:
+    paths:
+      - "content/posts/**"
+      - "tools/**"
+      - ".github/workflows/publish-blog.yml"
+      - "requirements-blog.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-blog
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-blog.txt
+
+      - name: Build and share
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_AUTHOR_URN: ${{ secrets.LINKEDIN_AUTHOR_URN }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          SITE_URL="${SITE_URL:-https://cyphershark.github.io}"
+          if [ -n "$LINKEDIN_ACCESS_TOKEN" ] && [ -n "$LINKEDIN_AUTHOR_URN" ]; then
+            python tools/blog.py --site-url "$SITE_URL" publish
+          else
+            echo "LinkedIn secrets missing; building site only."
+            python tools/blog.py --site-url "$SITE_URL" build
+          fi
+
+      - name: Commit generated pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add blog blog.html content/state.json
+          if git diff --staged --quiet; then
+            echo "No site changes to commit."
+            exit 0
+          fi
+          git commit -m "$(cat <<'EOF'
+          chore: publish scheduled blog posts
+
+          EOF
+          )"
+          git push
